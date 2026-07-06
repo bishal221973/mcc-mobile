@@ -28,32 +28,20 @@ const menus = [
     id: 3,
     title: 'Saved Addresses',
     icon: 'location-outline',
-    screen:'Orders'
+    screen:'Address'
   },
   {
     id: 4,
-    title: 'Reviews & Ratings',
-    icon: 'star-outline',
-    screen:'Orders'
+    title: 'Notifications',
+    icon: 'notifications-outline',
+    screen:'Notification'
   },
   {
     id: 5,
-    title: 'Notifications',
-    icon: 'notifications-outline',
-    screen:'Orders'
-  },
-  {
-    id: 6,
     title: 'Change Password',
     icon: 'lock-closed-outline',
-    screen:'Orders'
-  },
-  {
-    id: 7,
-    title: 'Settings',
-    icon: 'settings-outline',
-    screen:'Orders'
-  },
+    screen:'ChangePassword'
+  }
 ];
 
 const Account = ({navigation}) => {

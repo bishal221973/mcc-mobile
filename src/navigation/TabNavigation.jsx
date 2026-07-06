@@ -12,6 +12,9 @@ import Account from "../screen/auth/Account"
 import Search from "../screen/auth/Search"
 import Orders from "../screen/auth/Orders"
 import Wishlist from "../screen/auth/Wishlist"
+import Address from "../screen/auth/Address"
+import Notification from "../screen/auth/Notification"
+import ChangePassword from "../screen/auth/ChangePassword"
 // import Notification from "../screen/auth/Notification"
 // import SOS from "../screen/auth/SOS"
 // import Gigs from "../screen/auth/Gigs"
@@ -52,6 +55,7 @@ const Tabs = () => {
      <Tab.Screen name="Category" component={Category} />
      <Tab.Screen name="Cart" component={Cart} />
      <Tab.Screen name="Account" component={Account} />
+     {/* <Tab.Screen name="Address" component={Address} /> */}
      {/* <Tab.Screen name="Wallet" component={Wallet} />
      <Tab.Screen name="Update" component={Notification} /> */}
      {/* Do NOT include SOS here */}
@@ -67,6 +71,9 @@ const RootNavigation = () => {
      <Stack.Screen name="Search" component={Search} />
      <Stack.Screen name="Orders" component={Orders} />
      <Stack.Screen name="Wishlist" component={Wishlist} />
+     <Stack.Screen name="Address" component={Address} />
+     <Stack.Screen name="Notification" component={Notification} />
+     <Stack.Screen name="ChangePassword" component={ChangePassword} />
    </Stack.Navigator>
  )
 }

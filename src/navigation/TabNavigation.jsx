@@ -10,6 +10,7 @@ import Category from "../screen/auth/Category"
 import Cart from "../screen/auth/Cart"
 import Account from "../screen/auth/Account"
 import Search from "../screen/auth/Search"
+import Orders from "../screen/auth/Orders"
 // import Notification from "../screen/auth/Notification"
 // import SOS from "../screen/auth/SOS"
 // import Gigs from "../screen/auth/Gigs"
@@ -63,6 +64,7 @@ const RootNavigation = () => {
    <Stack.Navigator screenOptions={{ headerShown: false }}>
      <Stack.Screen name="MainTabs" component={Tabs} />
      <Stack.Screen name="Search" component={Search} />
+     <Stack.Screen name="Orders" component={Orders} />
    </Stack.Navigator>
  )
 }

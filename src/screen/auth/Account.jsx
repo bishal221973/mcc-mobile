@@ -49,7 +49,7 @@ const menus = [
   },
 ];
 
-const Account = () => {
+const Account = ({navigation}) => {
   return (
     <>
       <Header />
@@ -84,10 +84,10 @@ const Account = () => {
           {/* Stats */}
 
           <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
+            <TouchableOpacity  onPress={() => navigation.navigate('Orders')} style={styles.statCard}>
               <Text style={styles.statValue}>12</Text>
               <Text style={styles.statLabel}>Orders</Text>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.statCard}>
               <Text style={styles.statValue}>5</Text>

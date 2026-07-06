@@ -16,36 +16,43 @@ const menus = [
     id: 1,
     title: 'My Orders',
     icon: 'bag-handle-outline',
+    screen:'Orders'
   },
   {
     id: 2,
     title: 'Wishlist',
     icon: 'heart-outline',
+    screen:'Wishlist'
   },
   {
     id: 3,
     title: 'Saved Addresses',
     icon: 'location-outline',
+    screen:'Orders'
   },
   {
     id: 4,
     title: 'Reviews & Ratings',
     icon: 'star-outline',
+    screen:'Orders'
   },
   {
     id: 5,
     title: 'Notifications',
     icon: 'notifications-outline',
+    screen:'Orders'
   },
   {
     id: 6,
     title: 'Change Password',
     icon: 'lock-closed-outline',
+    screen:'Orders'
   },
   {
     id: 7,
     title: 'Settings',
     icon: 'settings-outline',
+    screen:'Orders'
   },
 ];
 
@@ -89,10 +96,10 @@ const Account = ({navigation}) => {
               <Text style={styles.statLabel}>Orders</Text>
             </TouchableOpacity>
 
-            <View style={styles.statCard}>
+            <TouchableOpacity onPress={() => navigation.navigate('Wishlist')} style={styles.statCard}>
               <Text style={styles.statValue}>5</Text>
               <Text style={styles.statLabel}>Wishlist</Text>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.statCard}>
               <Text style={styles.statValue}>3</Text>
@@ -106,7 +113,8 @@ const Account = ({navigation}) => {
             {menus.map(item => (
               <TouchableOpacity
                 key={item.id}
-                style={styles.menuItem}>
+                style={styles.menuItem}
+                onPress={() => navigation.navigate(item.screen)}>
                 <View style={styles.left}>
                   <Ionicons
                     name={item.icon}

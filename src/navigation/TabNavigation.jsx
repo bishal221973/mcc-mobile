@@ -15,6 +15,7 @@ import Wishlist from "../screen/auth/Wishlist"
 import Address from "../screen/auth/Address"
 import Notification from "../screen/auth/Notification"
 import ChangePassword from "../screen/auth/ChangePassword"
+import Profile from "../screen/auth/Profile"
 // import Notification from "../screen/auth/Notification"
 // import SOS from "../screen/auth/SOS"
 // import Gigs from "../screen/auth/Gigs"
@@ -74,6 +75,7 @@ const RootNavigation = () => {
      <Stack.Screen name="Address" component={Address} />
      <Stack.Screen name="Notification" component={Notification} />
      <Stack.Screen name="ChangePassword" component={ChangePassword} />
+     <Stack.Screen name="Profile" component={Profile} />
    </Stack.Navigator>
  )
 }

@@ -68,7 +68,7 @@ const Account = ({navigation}) => {
                 bishal@example.com
               </Text>
 
-              <TouchableOpacity style={styles.editBtn}>
+              <TouchableOpacity onPress={()=>navigation.navigate('Profile')} style={styles.editBtn}>
                 <Text style={styles.editText}>
                   Edit Profile
                 </Text>

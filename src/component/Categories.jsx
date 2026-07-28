@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import axios from "../services/axios"
+import { BASE_URL } from '../services/config';
 
-const categories = [
+const categories1 = [
   {
     id: '1',
     name: 'Concrete',
@@ -29,14 +31,83 @@ const categories = [
     name: 'Civil Laboratory Equipment',
     image: require('../../assets/categories/4.webp'),
   },
-  
+
 ];
 
 const Categories = () => {
+
+  const [categoryFilter, setCategoryFilter] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+
+  const fetchCategoryFilter = async () => {
+    try {
+      const response = await axios.get("/theme/customizations");
+
+      const carousel = response.data.data.find(
+        item => item.type === "category_carousel"
+      );
+
+      const filters = carousel?.options?.filters;
+
+      setCategoryFilter(filters);
+
+      fetchCategory(filters);
+    } catch (error) {
+      console.error(error.response?.data || error.message);
+    }
+  };
+  const fetchCategory = async (filters) => {
+    // console.log(filters)
+    try {
+      const res = await axios.get("/descendant-categories", {
+        params: {
+          parent_id: filters.parent_id,
+        },
+      });
+
+
+      // console.log(carousel);
+      let categories = res.data.data;
+
+
+      // =======Asc=======
+      if (filters.sort === "asc") {
+        categories.sort((a, b) => a.position - b.position);
+      } else if (filters.sort === "desc") {
+        categories.sort((a, b) => b.position - a.position);
+      }
+
+      // Limit
+      if (filters.limit) {
+        categories = categories.slice(0, Number(filters.limit));
+      }
+
+      if (filters.name) {
+        categories = categories.filter(
+          item => item.name.toLowerCase() === filters.name.toLowerCase()
+        );
+      }
+
+
+
+      setCategoriesList(categories);
+
+      console.log("...............................==...=???????????????????????????")
+      console.log(categories);
+
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    fetchCategoryFilter();
+  }, []);
   return (
     <View style={styles.container}>
+      {/* <Text>{JSON.stringify(categoriesList)}</Text> */}
       <FlatList
-        data={categories}
+        data={categoriesList}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
@@ -44,7 +115,7 @@ const Categories = () => {
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.item}>
             <View style={styles.imageContainer}>
-              <Image source={item.image} style={styles.image} />
+              <Image source={{ uri: item.logo_url }}  style={styles.image} />
             </View>
 
             <Text style={styles.label} numberOfLines={1}>
@@ -92,7 +163,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     resizeMode: 'cover',
-    borderRadius:35
+    borderRadius: 35
   },
 
   label: {

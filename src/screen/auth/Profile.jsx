@@ -8,9 +8,12 @@ import {
     TextInput,
     TouchableOpacity,
     Image,
+    Alert
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+
 const Profile = () => {
     const [firstName, setFirstName] = useState('Bishal');
     const [lastName, setLastName] = useState('Chaudhary');
@@ -19,11 +22,66 @@ const Profile = () => {
     const [gender, setGender] = useState('Male');
     const [dob, setDob] = useState('2000-01-01');
 
+    const [image, setImage] = useState(null);
+
     const handleSave = () => {
         alert('Profile updated successfully!');
         // Call your API here
     };
 
+    const openGallery = () => {
+        launchImageLibrary(
+            {
+                mediaType: 'photo',
+                quality: 1,
+            },
+            response => {
+                if (response.didCancel) return;
+
+                if (response.assets) {
+                    setImage(response.assets[0].uri);
+                }
+            },
+        );
+    };
+
+    const openCamera = () => {
+        launchCamera(
+            {
+                mediaType: 'photo',
+                cameraType: 'front',
+                quality: 1,
+            },
+            response => {
+                if (response.didCancel) return;
+
+                if (response.assets) {
+                    setImage(response.assets[0].uri);
+                }
+            },
+        );
+    };
+
+    const choosePhoto = () => {
+  Alert.alert(
+    'Profile Photo',
+    'Choose an option',
+    [
+      {
+        text: 'Camera',
+        onPress: openCamera,
+      },
+      {
+        text: 'Gallery',
+        onPress: openGallery,
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ],
+  );
+};
     return (
         <>
             <Header />
@@ -42,13 +100,17 @@ const Profile = () => {
                     {/* Profile Picture */}
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={{
-                                uri: 'https://i.pravatar.cc/200?img=12',
-                            }}
+                            source={
+                                image
+                                    ? { uri: image }
+                                    : {
+                                        uri: 'https://i.pravatar.cc/200?img=12',
+                                    }
+                            }
                             style={styles.avatar}
                         />
 
-                        <TouchableOpacity style={styles.cameraButton}>
+                        <TouchableOpacity onPress={choosePhoto} style={styles.cameraButton}>
                             <Ionicons
                                 name="camera"
                                 size={18}

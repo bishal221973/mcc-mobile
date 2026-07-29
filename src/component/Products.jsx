@@ -9,39 +9,13 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from "../services/axios"
+import { useNavigation } from '@react-navigation/native';
+
 const PRIMARY = '#0C3F80';
 
-// const products = [
-//     {
-//         id: '1',
-//         name: 'Apple iPhone 15 Pro Max',
-//         image: require('../../assets/products/3.webp'),
-//         price: '$999',
-//         oldPrice: '$1099',
-//         discount: '10% OFF',
-//         rating: 4.8,
-//     },
-//     {
-//         id: '2',
-//         name: 'Sony WH-1000XM5',
-//         image: require('../../assets/products/1.webp'),
-//         price: '$299',
-//         oldPrice: '$349',
-//         discount: '15% OFF',
-//         rating: 4.9,
-//     },
-//     // {
-//     //     id: '3',
-//     //     name: 'Apple Watch Ultra',
-//     //     image: require('../../assets/products/2.webp'),
-//     //     price: '$699',
-//     //     oldPrice: '$799',
-//     //     discount: '12% OFF',
-//     //     rating: 4.8,
-//     // },
-// ];
-
 const Products = ({ title, filters }) => {
+
+    const navigation = useNavigation();
 
     const [products, setProducts] = useState([]);
     const fetchProducts = async () => {
@@ -67,7 +41,7 @@ const Products = ({ title, filters }) => {
     })
 
     const renderProduct = ({ item }) => (
-        <TouchableOpacity style={styles.card} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={()=>navigation.navigate('ProductShow')}>
             {/* Discount Badge */}
             {/* <View style={styles.discountBadge}>
                 
@@ -84,12 +58,12 @@ const Products = ({ title, filters }) => {
             <Image source={{ uri: item?.images[0]?.url }} style={styles.image} />
 
             {/* Product Name */}
-            <View style={{paddingHorizontal:10}}>
+            <View style={{ paddingHorizontal: 10 }}>
                 <Text style={styles.name} numberOfLines={2}>
                     {item.name}
                 </Text>
 
-                
+
 
                 {/* Price */}
                 <View style={styles.priceRow}>

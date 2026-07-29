@@ -7,6 +7,7 @@ import TabNavigation from './TabNavigation'
 import DrawerNavigation from './DrawerNavigation';
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import ProductShow from "../screen/auth/ProductShow"
 
 
 const Stack = createNativeStackNavigator();
@@ -23,6 +24,7 @@ const StackNavigation = () => {
 
 
        <Stack.Screen name="Home" component={DrawerNavigation} />
+       <Stack.Screen name="ProductShow" component={ProductShow} />
      </Stack.Navigator>
    </NavigationContainer>
  )

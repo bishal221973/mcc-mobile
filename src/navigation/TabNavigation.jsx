@@ -56,6 +56,7 @@ const Tabs = () => {
      <Tab.Screen name="Category" component={Category} />
      <Tab.Screen name="Cart" component={Cart} />
      <Tab.Screen name="Account" component={Account} />
+     {/* <Tab.Screen name="ProductShow" component={ProductShow} /> */}
      {/* <Tab.Screen name="Address" component={Address} /> */}
      {/* <Tab.Screen name="Wallet" component={Wallet} />
      <Tab.Screen name="Update" component={Notification} /> */}

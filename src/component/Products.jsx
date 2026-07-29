@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,70 +8,94 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import axios from "../services/axios"
 const PRIMARY = '#0C3F80';
 
-const products = [
-    {
-        id: '1',
-        name: 'Apple iPhone 15 Pro Max',
-        image: require('../../assets/products/3.webp'),
-        price: '$999',
-        oldPrice: '$1099',
-        discount: '10% OFF',
-        rating: 4.8,
-    },
-    {
-        id: '2',
-        name: 'Sony WH-1000XM5',
-        image: require('../../assets/products/1.webp'),
-        price: '$299',
-        oldPrice: '$349',
-        discount: '15% OFF',
-        rating: 4.9,
-    },
-    {
-        id: '3',
-        name: 'Apple Watch Ultra',
-        image: require('../../assets/products/2.webp'),
-        price: '$699',
-        oldPrice: '$799',
-        discount: '12% OFF',
-        rating: 4.8,
-    },
-];
+// const products = [
+//     {
+//         id: '1',
+//         name: 'Apple iPhone 15 Pro Max',
+//         image: require('../../assets/products/3.webp'),
+//         price: '$999',
+//         oldPrice: '$1099',
+//         discount: '10% OFF',
+//         rating: 4.8,
+//     },
+//     {
+//         id: '2',
+//         name: 'Sony WH-1000XM5',
+//         image: require('../../assets/products/1.webp'),
+//         price: '$299',
+//         oldPrice: '$349',
+//         discount: '15% OFF',
+//         rating: 4.9,
+//     },
+//     // {
+//     //     id: '3',
+//     //     name: 'Apple Watch Ultra',
+//     //     image: require('../../assets/products/2.webp'),
+//     //     price: '$699',
+//     //     oldPrice: '$799',
+//     //     discount: '12% OFF',
+//     //     rating: 4.8,
+//     // },
+// ];
 
-const Products = ({ title }) => {
+const Products = ({ title, filters }) => {
+
+    const [products, setProducts] = useState([]);
+    const fetchProducts = async () => {
+        console.log(filters)
+        try {
+            const res = await axios.get("/products", {
+                params: {
+                    category_id: filters.category_id,
+                },
+            });
+
+            setProducts(res.data.data);
+
+
+
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts()
+    })
+
     const renderProduct = ({ item }) => (
         <TouchableOpacity style={styles.card} activeOpacity={0.8}>
             {/* Discount Badge */}
-            <View style={styles.discountBadge}>
-                <Text style={styles.discountText}>{item.discount}</Text>
-            </View>
+            {/* <View style={styles.discountBadge}>
+                
+            </View> */}
+            {/* <Text style={styles.discountText}>{item.discount}</Text> */}
 
             {/* Wishlist */}
             <TouchableOpacity style={styles.favorite}>
-                <Ionicons name="heart-outline" size={20} color="#555" />
+                <Ionicons name="heart-outline" size={20} color="#fff" />
             </TouchableOpacity>
 
+            {/* <Text>{JSON.stringify(item?.images[0]?.url)}</Text> */}
             {/* Product Image */}
-            <Image source={item.image} style={styles.image} />
+            <Image source={{ uri: item?.images[0]?.url }} style={styles.image} />
 
             {/* Product Name */}
-            <Text style={styles.name} numberOfLines={2}>
-                {item.name}
-            </Text>
+            <View style={{paddingHorizontal:10}}>
+                <Text style={styles.name} numberOfLines={2}>
+                    {item.name}
+                </Text>
 
-            {/* Rating */}
-            <View style={styles.ratingRow}>
-                <Ionicons name="star" size={14} color="#FBBF24" />
-                <Text style={styles.rating}>{item.rating}</Text>
-            </View>
+                
 
-            {/* Price */}
-            <View style={styles.priceRow}>
-                <Text style={styles.price}>{item.price}</Text>
-                <Text style={styles.oldPrice}>{item.oldPrice}</Text>
+                {/* Price */}
+                <View style={styles.priceRow}>
+                    <Text style={styles.price}>{item.formatted_price}</Text>
+                    <Text style={styles.oldPrice}>Rs. 1000</Text>
+                </View>
             </View>
 
             {/* Add to Cart */}
@@ -129,7 +153,7 @@ const styles = StyleSheet.create({
         fontSize: 21,
         fontWeight: '700',
         color: '#111827',
-        width:'85%'
+        width: '85%'
     },
 
     viewAll: {
@@ -147,7 +171,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 12,
         marginRight: 15,
-        padding: 10,
+        // padding: 10,
         elevation: 4,
         shadowColor: '#000',
         shadowOpacity: 0.08,
@@ -156,6 +180,8 @@ const styles = StyleSheet.create({
             width: 0,
             height: 2,
         },
+        borderRadius: 20,
+        overflow: 'hidden'
     },
 
     discountBadge: {
@@ -180,13 +206,23 @@ const styles = StyleSheet.create({
         top: 10,
         right: 10,
         zIndex: 1,
+        backgroundColor: '#0C3F8099',
+        elevation: 10,
+        height: 30,
+        width: 30,
+        borderWidth: 1,
+        borderColor: '#fff',
+        borderRadius: 10,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
 
     image: {
         width: '100%',
-        height: 150,
-        resizeMode: 'contain',
-        marginTop: 15,
+        height: 200,
+        resizeMode: 'cover',
+        marginTop: 0,
     },
 
     name: {
@@ -194,7 +230,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#374151',
         marginTop: 10,
-        height: 40,
     },
 
     ratingRow: {

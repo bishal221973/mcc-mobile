@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   ScrollView,
+  FlatList
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "../../component/Header"
@@ -12,26 +13,127 @@ import Slider from "../../component/Slider"
 import Categories from "../../component/Categories"
 import Products from "../../component/Products"
 import Search from "../../component/Search"
+import axios from "../../services/axios"
 const PRIMARY = '#2563EB';
 
 const Home = ({ navigation }) => {
+
+  const [sliderData, setSliderData] = useState([]);
+  // const [categoryFilter, setCategoryFilter] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [productCarousels, setProductCarousels] = useState([]);
+  const fetchSliders = async () => {
+    try {
+      const response = await axios.get('/theme/customizations');
+
+      const carousel = response.data.data.find(
+        item => item.type === 'image_carousel'
+      );
+      setSliderData(carousel?.options?.images);
+
+      const categoryFilters = response.data.data.find(
+        item => item.type === "category_carousel"
+      );
+
+      const productCaros = response.data.data.filter(
+        item => item.type === "product_carousel"
+      );
+
+      setProductCarousels(productCaros);
+
+      const filters = categoryFilters?.options?.filters;
+
+      // setCategoryFilter(filters);
+
+      fetchCategory(filters);
+
+      // setSliderData(response.data); // Update according to your API response
+    } catch (error) {
+      console.error(
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const fetchCategory = async (filters) => {
+    // console.log(filters)
+    try {
+      const res = await axios.get("/descendant-categories", {
+        params: {
+          parent_id: filters.parent_id,
+        },
+      });
+
+
+      // console.log(carousel);
+      let categories = res.data.data;
+
+
+      // =======Asc=======
+      if (filters.sort === "asc") {
+        categories.sort((a, b) => a.position - b.position);
+      } else if (filters.sort === "desc") {
+        categories.sort((a, b) => b.position - a.position);
+      }
+
+      // Limit
+      if (filters.limit) {
+        categories = categories.slice(0, Number(filters.limit));
+      }
+
+      if (filters.name) {
+        categories = categories.filter(
+          item => item.name.toLowerCase() === filters.name.toLowerCase()
+        );
+      }
+
+
+
+      setCategoriesList(categories);
+
+      console.log("...............................==...=???????????????????????????")
+      console.log(categories);
+
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSliders();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Header/>
+      <Header />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
-        >
-        <Slider/>
-        <Search/>
-        <Categories/>
-        <Products title="CONCRETE PRODUCTS"/>
-        <Products title="WATERPROOF / CEMENTITIOUS BONDING AGENT PRODUCTS"/>
-        <Products title="MOUNT DRY MIX PRODUCTS"/>
+      >
+        <Slider sliderData={sliderData} />
+        <Search />
+        <Categories categoriesList={categoriesList} />
+
+        {/* <Text>{JSON.stringify(productCarousels)}</Text> */}
+
+        {/* horizontal */}
+        <FlatList
+          data={productCarousels}
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingHorizontal: 15 }}
+          renderItem={({ item }) => (
+            // <Text>{JSON.stringify(item?.options)} /////</Text>
+            <Products title={item?.options?.title} filters={item?.options?.filters}/>
+          )}
+        />
+        {/* <Products title="WATERPROOF / CEMENTITIOUS BONDING AGENT PRODUCTS" />
+        <Products title="MOUNT DRY MIX PRODUCTS" /> */}
         {/* Welcome Card */}
-        
+
       </ScrollView>
     </View>
   );

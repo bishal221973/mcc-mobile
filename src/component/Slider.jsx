@@ -13,48 +13,9 @@ const { width } = Dimensions.get('window');
 
 
 
-const Slider = () => {
+const Slider = ({sliderData}) => {
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const [sliderData, setSliderData] = useState([]);
-
-  const fetchSliders = async () => {
-    try {
-      const response = await axios.get('/theme/customizations');
-
-      const carousel = response.data.data.find(
-        item => item.type === 'image_carousel'
-      );
-      setSliderData(carousel?.options?.images);
-
-      // setSliderData(response.data); // Update according to your API response
-    } catch (error) {
-      console.error(
-        error.response?.data || error.message
-      );
-    }
-  };
-
-  useEffect(() => {
-    fetchSliders();
-  }, []);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     const nextIndex =
-  //       currentIndex === sliderData.length - 1 ? 0 : currentIndex + 1;
-
-  //     flatListRef.current?.scrollToIndex({
-  //       index: nextIndex,
-  //       animated: true,
-  //     });
-
-  //     setCurrentIndex(nextIndex);
-  //   }, 3000);
-
-  //   return () => clearInterval(interval);
-  // }, [currentIndex]);
 
   useEffect(() => {
     if (!sliderData || sliderData.length === 0) return;

@@ -34,75 +34,8 @@ const categories1 = [
 
 ];
 
-const Categories = () => {
+const Categories = ({categoriesList}) => {
 
-  const [categoryFilter, setCategoryFilter] = useState([]);
-  const [categoriesList, setCategoriesList] = useState([]);
-
-  const fetchCategoryFilter = async () => {
-    try {
-      const response = await axios.get("/theme/customizations");
-
-      const carousel = response.data.data.find(
-        item => item.type === "category_carousel"
-      );
-
-      const filters = carousel?.options?.filters;
-
-      setCategoryFilter(filters);
-
-      fetchCategory(filters);
-    } catch (error) {
-      console.error(error.response?.data || error.message);
-    }
-  };
-  const fetchCategory = async (filters) => {
-    // console.log(filters)
-    try {
-      const res = await axios.get("/descendant-categories", {
-        params: {
-          parent_id: filters.parent_id,
-        },
-      });
-
-
-      // console.log(carousel);
-      let categories = res.data.data;
-
-
-      // =======Asc=======
-      if (filters.sort === "asc") {
-        categories.sort((a, b) => a.position - b.position);
-      } else if (filters.sort === "desc") {
-        categories.sort((a, b) => b.position - a.position);
-      }
-
-      // Limit
-      if (filters.limit) {
-        categories = categories.slice(0, Number(filters.limit));
-      }
-
-      if (filters.name) {
-        categories = categories.filter(
-          item => item.name.toLowerCase() === filters.name.toLowerCase()
-        );
-      }
-
-
-
-      setCategoriesList(categories);
-
-      console.log("...............................==...=???????????????????????????")
-      console.log(categories);
-
-
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  useEffect(() => {
-    fetchCategoryFilter();
-  }, []);
   return (
     <View style={styles.container}>
       {/* <Text>{JSON.stringify(categoriesList)}</Text> */}

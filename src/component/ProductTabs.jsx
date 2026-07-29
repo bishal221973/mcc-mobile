@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import Review from "../component/Review"
 const { width } = Dimensions.get('window');
 
-const ProductTabs = () => {
+const ProductTabs = ({ product }) => {
     const [activeTab, setActiveTab] = useState('description');
 
     const tabs = [
@@ -17,11 +17,12 @@ const ProductTabs = () => {
     const renderDescription = () => (
         <View style={styles.contentBody}>
             <Text style={styles.paragraphText}>
-                Our premium Tile Adhesive is engineered for high-performance bonding of ceramic, porcelain, and natural stone tiles. It offers exceptional workability, high sag resistance, and extended open time for both interior and exterior applications.
+                {/* {JSON.stringify(product?.description)} */}
+                {product.description
+                    ?.replace(/<[^>]*>/g, '')
+                }
             </Text>
-            <Text style={styles.paragraphText}>
-                Perfect for heavy-duty floor installations, wet areas like bathrooms and kitchens, and demanding commercial spaces.
-            </Text>
+
         </View>
     );
 
@@ -39,10 +40,10 @@ const ProductTabs = () => {
         return (
             <View style={styles.contentBody}>
                 {specsData.map((item, index) => (
-                    <View 
-                        key={index} 
+                    <View
+                        key={index}
                         style={[
-                            styles.specRow, 
+                            styles.specRow,
                             index % 2 === 0 && styles.specRowEven
                         ]}
                     >
@@ -62,41 +63,8 @@ const ProductTabs = () => {
         ];
 
         return (
-            <View style={styles.contentBody}>
-                {/* Rating Overview Summary */}
-                <View style={styles.ratingSummaryCard}>
-                    <View>
-                        <Text style={styles.ratingBigNumber}>4.8</Text>
-                        <Text style={styles.ratingSubLabel}>out of 5 stars</Text>
-                    </View>
-                    <View style={styles.starsRow}>
-                        {[1, 2, 3, 4, 5].map((s) => (
-                            <Ionicons key={s} name="star" size={18} color="#FFB020" />
-                        ))}
-                    </View>
-                </View>
-
-                {/* Review List */}
-                {dummyReviews.map((review) => (
-                    <View key={review.id} style={styles.reviewCard}>
-                        <View style={styles.reviewHeader}>
-                            <View style={styles.avatarPlaceholder}>
-                                <Text style={styles.avatarText}>{review.name.charAt(0)}</Text>
-                            </View>
-                            <View style={styles.reviewerInfo}>
-                                <Text style={styles.reviewerName}>{review.name}</Text>
-                                <View style={styles.reviewStars}>
-                                    {Array.from({ length: review.rating }).map((_, i) => (
-                                        <Ionicons key={i} name="star" size={12} color="#FFB020" />
-                                    ))}
-                                </View>
-                            </View>
-                            <Text style={styles.reviewDate}>{review.date}</Text>
-                        </View>
-                        <Text style={styles.reviewComment}>{review.comment}</Text>
-                    </View>
-                ))}
-            </View>
+            <Review product={product}/>
+           
         );
     };
 

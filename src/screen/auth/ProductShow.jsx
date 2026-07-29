@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -8,270 +8,470 @@ import {
     ScrollView,
     Alert,
 } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Header from '../../component/Header';
+
 import ProductImageShow from '../../component/ProductImageShow';
 import ProductTabs from '../../component/ProductTabs';
 import RelatedProducts from '../../component/RelatedProducts';
-const Account = ({ navigation }) => {
+
+import axios from '../../services/axios';
+
+
+const ProductShow = ({ route }) => {
+
+    const { id } = route.params;
+
     const [quantity, setQuantity] = useState(1);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [product, setProduct] = useState(null);
+
+
+    const fetchProduct = async () => {
+        try {
+
+            const response = await axios.get(`/products/${id}`);
+
+            console.log(response.data);
+
+            setProduct(response.data.data);
+
+        } catch (error) {
+
+            console.log(
+                error.response?.data || error.message
+            );
+
+        }
+    };
+
+
+    useEffect(() => {
+        fetchProduct();
+    }, [id]);
+
+
 
     const handleAddToCart = () => {
-        Alert.alert('Success', `${quantity} item(s) added to cart.`);
+
+        Alert.alert(
+            'Success',
+            `${quantity} item(s) added to cart`
+        );
+
     };
+
 
     const handleBuyNow = () => {
-        Alert.alert('Checkout', `Proceeding straight to checkout with ${quantity} item(s).`);
+
+        Alert.alert(
+            'Checkout',
+            `Buying ${quantity} item(s)`
+        );
+
     };
 
+
+
+    if (!product) {
+
+        return (
+            <View style={styles.loading}>
+                <Text>Loading...</Text>
+            </View>
+        );
+
+    }
+
+
+
     return (
-        <View style={styles.mainWrapper}>
-            <Header />
-            
-            <SafeAreaView style={styles.container}>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    {/* Image Section */}
-                    <View style={styles.imageContainer}>
-                        <ProductImageShow />
-                        <TouchableOpacity 
-                            style={styles.favoriteBtn}
-                            onPress={() => setIsFavorite(!isFavorite)}
-                        >
-                            <Ionicons 
-                                name={isFavorite ? "heart" : "heart-outline"} 
-                                size={22} 
-                                color={isFavorite ? "#E63946" : "#1A1A1A"} 
-                            />
-                        </TouchableOpacity>
-                    </View>
 
-                    {/* Product Details Card */}
-                    <View style={styles.detailsContainer}>
-                        <View style={styles.titleRow}>
-                            <Text style={styles.productTitle}>Tile Adhesive</Text>
-                            <Text style={styles.productPrice}>Rs. 1,000</Text>
-                        </View>
+        <SafeAreaView style={styles.mainWrapper}>
 
-                        <Text style={styles.sectionTitle}>Description</Text>
-                        <Text style={styles.productDescription}>
-                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum obcaecati recusandae cum ad atque accusantium eum possimus et ex quia?
+
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+            >
+
+
+                {/* Product Images */}
+
+                <ProductImageShow
+                    product={product}
+                />
+
+                <TouchableOpacity
+                    style={styles.favoriteBtn}
+                    onPress={() =>
+                        setIsFavorite(!isFavorite)
+                    }
+                >
+
+                    <Ionicons
+                        name={
+                            isFavorite
+                                ? "heart"
+                                : "heart-outline"
+                        }
+                        size={25}
+                        color={
+                            isFavorite
+                                ? "#E63946"
+                                : "#000"
+                        }
+                    />
+
+                </TouchableOpacity>
+
+
+
+
+                {/* Product Details */}
+
+                <View style={styles.detailsContainer}>
+
+
+                    <View style={styles.titleRow}>
+
+
+                        <Text style={styles.productTitle}>
+                            {product.name}
                         </Text>
 
-                        {/* Quantity Selector Section */}
-                        <Text style={styles.sectionTitle}>Quantity</Text>
-                        <View style={styles.quantityContainer}>
-                            <TouchableOpacity 
-                                style={styles.qtyBtn}
-                                onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                            >
-                                <Ionicons name="remove" size={20} color="#1A1A1A" />
-                            </TouchableOpacity>
-                            
-                            <Text style={styles.qtyText}>{quantity}</Text>
-                            
-                            <TouchableOpacity 
-                                style={styles.qtyBtn}
-                                onPress={() => setQuantity(quantity + 1)}
-                            >
-                                <Ionicons name="add" size={20} color="#1A1A1A" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                    <View>
-                        <ProductTabs/>
-                        <RelatedProducts/>
-                    </View>
-                </ScrollView>
 
-                {/* Sticky Action Footer */}
-                <View style={styles.footer}>
-                    <View style={styles.totalPriceContainer}>
-                        <Text style={styles.totalLabel}>Total Price</Text>
-                        <Text style={styles.totalPriceText}>Rs. {1000 * quantity}</Text>
+                        <Text style={styles.productPrice}>
+                            Rs. {product.price}
+                        </Text>
+
+
                     </View>
-                    
-                    <View style={styles.buttonActionGroup}>
-                        <TouchableOpacity 
-                            style={styles.cartButton} 
-                            onPress={handleAddToCart}
+
+
+
+                    <Text style={styles.sectionTitle}>
+                        Description
+                    </Text>
+
+
+                    <Text style={styles.productDescription}>
+                        {product.short_description
+                            ?.replace(/<[^>]*>/g, '')
+                        }
+                    </Text>
+
+
+
+
+                    {/* Quantity */}
+
+                    <Text style={styles.sectionTitle}>
+                        Quantity
+                    </Text>
+
+
+
+                    <View style={styles.quantityContainer}>
+
+
+                        <TouchableOpacity
+                            style={styles.qtyBtn}
+                            onPress={() =>
+                                setQuantity(
+                                    Math.max(
+                                        1,
+                                        quantity - 1
+                                    )
+                                )
+                            }
                         >
-                            <Ionicons name="bag-handle-outline" size={18} color="#007AFF" />
+
+                            <Ionicons
+                                name="remove"
+                                size={20}
+                                color="#000"
+                            />
+
                         </TouchableOpacity>
 
-                        <TouchableOpacity 
-                            style={styles.buyNowButton} 
-                            onPress={handleBuyNow}
+
+
+                        <Text style={styles.qtyText}>
+                            {quantity}
+                        </Text>
+
+
+
+                        <TouchableOpacity
+                            style={styles.qtyBtn}
+                            onPress={() =>
+                                setQuantity(quantity + 1)
+                            }
                         >
-                            <Text style={styles.buyNowButtonText}>Buy Now</Text>
+
+                            <Ionicons
+                                name="add"
+                                size={20}
+                                color="#000"
+                            />
+
                         </TouchableOpacity>
+
+
+
                     </View>
+
+
                 </View>
-            </SafeAreaView>
-        </View>
+
+
+
+                <ProductTabs product={product} />
+
+                <RelatedProducts />
+
+
+            </ScrollView>
+
+
+
+
+            {/* Footer */}
+
+            <View style={styles.footer}>
+
+
+                <View>
+
+                    <Text style={styles.totalLabel}>
+                        Total Price
+                    </Text>
+
+
+                    <Text style={styles.totalPriceText}>
+                        Rs. {Number(product.price) * quantity}
+                    </Text>
+
+
+                </View>
+
+
+
+
+                <View style={styles.buttonActionGroup}>
+
+
+                    <TouchableOpacity
+                        style={styles.cartButton}
+                        onPress={handleAddToCart}
+                    >
+
+                        <Ionicons
+                            name="bag-handle-outline"
+                            size={22}
+                            color="#007AFF"
+                        />
+
+                    </TouchableOpacity>
+
+
+
+
+                    <TouchableOpacity
+                        style={styles.buyNowButton}
+                        onPress={handleBuyNow}
+                    >
+
+                        <Text style={styles.buyNowButtonText}>
+                            Buy Now
+                        </Text>
+
+                    </TouchableOpacity>
+
+
+
+                </View>
+
+
+            </View>
+
+
+
+        </SafeAreaView>
+
     );
+
 };
 
-export default Account;
+
+export default ProductShow;
+
+
 
 const styles = StyleSheet.create({
+
+
     mainWrapper: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#fff'
     },
+
+
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
     },
+
+
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
+
     scrollContent: {
-        paddingBottom: 30,
+        paddingBottom: 100
     },
-    imageContainer: {
-        position: 'relative',
-        backgroundColor: '#FFF',
-    },
+
+
     favoriteBtn: {
         position: 'absolute',
-        top: 16,
-        right: 16,
-        zIndex: 5,
-        height: 44,
-        width: 44,
-        borderRadius: 22,
-        backgroundColor: '#FFFFFF',
-        flexDirection: 'row',
-        justifyContent: 'center',
+        right: 20,
+        top: 20,
+        backgroundColor: '#fff',
+        height: 45,
+        width: 45,
+        borderRadius: 25,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
+        justifyContent: 'center',
+        elevation: 5
     },
+
+
     detailsContainer: {
-        backgroundColor: '#FFFFFF',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        marginTop: -20,
-        paddingHorizontal: 20,
-        paddingTop: 24,
-        paddingBottom: 20,
+        backgroundColor: '#fff',
+        padding: 20,
     },
+
+
     titleRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
     },
+
+
     productTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#1A1A1A',
         flex: 1,
-        marginRight: 10,
-    },
-    productPrice: {
         fontSize: 22,
         fontWeight: '700',
+    },
+
+
+    productPrice: {
+        fontSize: 20,
         color: '#007AFF',
+        fontWeight: '700'
     },
+
+
     sectionTitle: {
+        marginTop: 15,
         fontSize: 16,
-        fontWeight: '600',
-        color: '#1A1A1A',
-        marginBottom: 8,
-        marginTop: 12,
+        fontWeight: '600'
     },
+
+
     productDescription: {
-        fontSize: 15,
-        color: '#666666',
-        lineHeight: 22,
-        textAlign: 'justify',
-        marginBottom: 10,
+        marginTop: 8,
+        color: '#666',
+        lineHeight: 22
     },
+
+
     quantityContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F1F3F5',
-        borderRadius: 12,
+        marginTop: 10,
+        backgroundColor: '#eee',
         width: 130,
-        height: 44,
-        paddingHorizontal: 4,
-        justifyContent: 'space-between',
-        marginTop: 4,
+        padding: 5,
+        borderRadius: 10,
+        justifyContent: 'space-between'
     },
+
+
     qtyBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
-        backgroundColor: '#FFFFFF',
+        width: 35,
+        height: 35,
+        backgroundColor: '#fff',
+        alignItems: 'center',
         justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
+        borderRadius: 8
     },
+
+
     qtyText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1A1A1A',
+        fontSize: 18,
+        fontWeight: '600'
     },
+
+
     footer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#FFFFFF',
+        height: 80,
+        backgroundColor: '#fff',
         borderTopWidth: 1,
-        borderTopColor: '#E9ECEF',
+        borderColor: '#ddd',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20
     },
-    totalPriceContainer: {
-        flexDirection: 'column',
-    },
+
+
     totalLabel: {
-        fontSize: 13,
-        color: '#868E96',
-        marginBottom: 2,
+        color: '#777'
     },
+
+
     totalPriceText: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#1A1A1A',
+        fontWeight: '700'
     },
+
+
     buttonActionGroup: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'center'
     },
+
+
     cartButton: {
-        height: 48,
-        width: 48,
-        borderRadius: 12,
-        borderWidth: 1.5,
+        width: 50,
+        height: 50,
+        borderWidth: 1,
         borderColor: '#007AFF',
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
+        borderRadius: 10,
         justifyContent: 'center',
-        marginRight: 12,
+        alignItems: 'center',
+        marginRight: 10
     },
+
+
     buyNowButton: {
         backgroundColor: '#007AFF',
-        borderRadius: 12,
-        height: 48,
-        paddingHorizontal: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 2,
-        shadowColor: '#007AFF',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
+        height: 50,
+        paddingHorizontal: 30,
+        borderRadius: 10,
+        justifyContent: 'center'
     },
+
+
     buyNowButtonText: {
-        color: '#FFFFFF',
+        color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
-    },
+        fontWeight: '700'
+    }
+
+
 });

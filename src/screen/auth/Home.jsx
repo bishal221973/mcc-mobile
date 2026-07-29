@@ -56,7 +56,6 @@ const Home = ({ navigation }) => {
   };
 
   const fetchCategory = async (filters) => {
-    // console.log(filters)
     try {
       const res = await axios.get("/descendant-categories", {
         params: {
@@ -65,7 +64,6 @@ const Home = ({ navigation }) => {
       });
 
 
-      // console.log(carousel);
       let categories = res.data.data;
 
 
@@ -91,9 +89,7 @@ const Home = ({ navigation }) => {
 
       setCategoriesList(categories);
 
-      console.log("...............................==...=???????????????????????????")
-      console.log(categories);
-
+      
 
     } catch (err) {
       console.log(err);

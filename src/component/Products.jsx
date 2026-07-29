@@ -6,6 +6,7 @@ import {
     FlatList,
     Image,
     TouchableOpacity,
+    Alert
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from "../services/axios"
@@ -19,7 +20,6 @@ const Products = ({ title, filters }) => {
 
     const [products, setProducts] = useState([]);
     const fetchProducts = async () => {
-        console.log(filters)
         try {
             const res = await axios.get("/products", {
                 params: {
@@ -41,7 +41,9 @@ const Products = ({ title, filters }) => {
     })
 
     const renderProduct = ({ item }) => (
-        <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={()=>navigation.navigate('ProductShow')}>
+        <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ProductShow', {
+            id: item.id
+        })}>
             {/* Discount Badge */}
             {/* <View style={styles.discountBadge}>
                 

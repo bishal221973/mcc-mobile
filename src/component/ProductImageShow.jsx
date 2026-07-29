@@ -1,196 +1,116 @@
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Image,
   View,
-  TouchableOpacity,
   Dimensions,
   FlatList,
-  Modal,
-  Pressable,
 } from 'react-native';
-import React, { useState, useRef } from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-const images = [
-  require('../../assets/slider/4.webp'),
-  require('../../assets/slider/5.webp'),
-  require('../../assets/slider/6.webp'),
-];
+// Fallback placeholder image URL if none exists
+const PLACEHOLDER_IMG = 'https://placeholder.com';
 
-const ProductImageShow = () => {
-  const [visible, setVisible] = useState(false);
+const ProductImageShow = ({ product }) => {
   const [activeIndex, setActiveIndex] = useState(0);
-
   const flatListRef = useRef(null);
+
+  // Fallback safely to empty array if undefined
+  const images = product?.images || [];
 
   return (
     <View style={styles.container}>
-
-      {/* Main Product Image */}
-      <TouchableOpacity onPress={() => setVisible(true)}>
-        <Image
-          source={images[1]}
-          style={styles.image}
-          resizeMode="cover"
-        />
-      </TouchableOpacity>
-
-
-      {/* Popup */}
-      <Modal
-        visible={visible}
-        transparent={false}
-        animationType="fade"
-        onRequestClose={() => setVisible(false)}
-      >
-
-        <View style={styles.modal}>
-
-          {/* Close Button */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setVisible(false)}
-          >
-            <Icon
-              name="close"
-              size={30}
-              color="#fff"
-            />
-          </TouchableOpacity>
-
-
-          {/* Main Slider */}
-          <FlatList
-            ref={flatListRef}
-            data={images}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item, index) => index.toString()}
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x / width
-              );
-              setActiveIndex(index);
-            }}
-            renderItem={({ item }) => (
+      {/* Main Slider Section */}
+      {images.length > 0 ? (
+        <FlatList
+          ref={flatListRef}
+          data={images}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item, index) => index.toString()}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(
+              event.nativeEvent.contentOffset.x / width
+            );
+            setActiveIndex(index);
+          }}
+          renderItem={({ item }) => (
+            <View style={styles.slideItem}>
               <Image
-                source={item}
-                style={styles.popupImage}
-                resizeMode="contain"
+                source={{ uri: item.url }}
+                style={styles.image}
+                resizeMode="cover"
               />
-            )}
-          />
-
-
-          {/* Bottom Thumbnail */}
-          <View style={styles.thumbnailContainer}>
-
-            <FlatList
-              data={images}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item, index }) => (
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setActiveIndex(index);
-
-                    flatListRef.current?.scrollToIndex({
-                      index: index,
-                      animated: true,
-                    });
-                  }}
-                >
-
-                  <Image
-                    source={item}
-                    style={[
-                      styles.thumbnail,
-                      activeIndex === index && styles.activeThumbnail
-                    ]}
-                  />
-
-                </TouchableOpacity>
-
-              )}
+            </View>
+          )}
+        />
+      ) : (
+        <View style={styles.slideItem}>
+          <Image
+            source={{ uri: PLACEHOLDER_IMG }}
+            style={styles.image}
+            resizeMode="cover"
             />
-
-          </View>
-
-
         </View>
+      )}
 
-      </Modal>
-
+      {/* Modern Dynamic Inline Dot Indicators */}
+      {images.length > 1 && (
+        <View style={styles.paginationContainer}>
+          {images.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                activeIndex === index ? styles.activeDot : styles.inactiveDot,
+              ]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
 
 export default ProductImageShow;
 
-
 const styles = StyleSheet.create({
-
-  container:{
-    alignItems:'center',
-    justifyContent:'center',
+  container: {
+    width: width,
+    backgroundColor: '#FFFFFF',
+    position: 'relative',
   },
-
-  image:{
-    width:width,
-    height:300,
+  slideItem: {
+    width: width,
+    height: 350,
   },
-
-
-  modal:{
-    flex:1,
-    backgroundColor:'#fff',
-    justifyContent:'center',
+  image: {
+    width: '100%',
+    height: '100%',
   },
-
-
-  closeButton:{
-    position:'absolute',
-    top:40,
-    right:20,
-    zIndex:10,
-    backgroundColor:'red',
-    borderRadius:20,
-    padding:5,
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 24, // Floats cleanly over the bottom of the image area
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
-
-
-  popupImage:{
-    width:width,
-    height:height*0.75,
+  dot: {
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
-
-
-  thumbnailContainer:{
-    position:'absolute',
-    bottom:30,
-    width:width,
-    alignItems:'center',
+  inactiveDot: {
+    width: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
-
-
-  thumbnail:{
-    width:50,
-    height:50,
-    borderRadius:8,
-    marginHorizontal:5,
-    borderWidth:2,
-    borderColor:'#777',
+  activeDot: {
+    width: 20, // Expanded pill style for the current selected slide
+    backgroundColor: '#007AFF',
   },
-
-
-  activeThumbnail:{
-    borderColor:'#fff',
-    borderWidth:3,
-  },
-
 });

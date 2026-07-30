@@ -141,12 +141,12 @@ const ProductShow = ({ route }) => {
                         </Text>
 
 
-                        <Text style={styles.productPrice}>
-                            Rs. {product.price}
-                        </Text>
 
 
                     </View>
+                    <Text style={[styles.productPrice,{marginTop:5}]}>
+                        {product.formatted_price}
+                    </Text>
 
 
 
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
 
 
     productPrice: {
-        fontSize: 20,
+        fontSize: 18,
         color: '#007AFF',
         fontWeight: '700'
     },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
 
 
     totalPriceText: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '700'
     },
 

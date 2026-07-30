@@ -14,6 +14,8 @@ import Categories from "../../component/Categories"
 import Products from "../../component/Products"
 import Search from "../../component/Search"
 import axios from "../../services/axios"
+import { useRoute } from '@react-navigation/native';
+
 const PRIMARY = '#2563EB';
 
 const Home = ({ navigation }) => {
@@ -22,6 +24,10 @@ const Home = ({ navigation }) => {
   // const [categoryFilter, setCategoryFilter] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [productCarousels, setProductCarousels] = useState([]);
+
+  const route = useRoute();
+
+
   const fetchSliders = async () => {
     try {
       const response = await axios.get('/theme/customizations');
@@ -89,7 +95,7 @@ const Home = ({ navigation }) => {
 
       setCategoriesList(categories);
 
-      
+
 
     } catch (err) {
       console.log(err);
@@ -100,10 +106,13 @@ const Home = ({ navigation }) => {
     fetchSliders();
   }, []);
 
+  
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <Header />
+      {/* <Text>{JSON.stringify(route.params?.search)}</Text> */}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -123,7 +132,7 @@ const Home = ({ navigation }) => {
           contentContainerStyle={{ paddingHorizontal: 15 }}
           renderItem={({ item }) => (
             // <Text>{JSON.stringify(item?.options)} /////</Text>
-            <Products title={item?.options?.title} filters={item?.options?.filters}/>
+            <Products title={item?.options?.title} filters={item?.options?.filters} />
           )}
         />
         {/* <Products title="WATERPROOF / CEMENTITIOUS BONDING AGENT PRODUCTS" />

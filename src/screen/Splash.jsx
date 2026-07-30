@@ -19,7 +19,7 @@ const Splash = ({ navigation }) => {
       <TouchableOpacity 
         style={styles.button} 
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('Home')}
+        onPress={() => navigation.navigate('Drawer')}
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>

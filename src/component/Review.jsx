@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from "../services/axios"
+import WriteReview from "./WriteReview"
 const Review = ({ product }) => {
 
     const dummyReviews = [
@@ -166,6 +167,8 @@ const Review = ({ product }) => {
 
                     </View>
 
+                    
+
 
                 </View>
                 <View style={{ paddingHorizontal: 10 }}>
@@ -228,6 +231,7 @@ const Review = ({ product }) => {
                         </View>
                     </View>
                 </View>
+                <WriteReview/>
             </View>
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,33 +6,28 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import axios from "../../services/axios"
 import Header from '../../component/Header';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
-const recentSearches = [
-  'iPhone',
-  'Shoes',
-  'Headphones',
-  'Laptop',
-];
 
-const popularSearches = [
-  'Electronics',
-  'Fashion',
-  'Watch',
-  'Gaming',
-  'Smart TV',
-  'Mobile',
-  'Beauty',
-  'Furniture',
-];
+// const recentSearches = [
+//   'iPhone',
+//   'Shoes',
+//   'Headphones',
+//   'Laptop',
+// ];
 
 const Search = () => {
   const [search, setSearch] = useState('');
   const inputRef = useRef(null);
+
+  const navigation = useNavigation();
 
   useFocusEffect(
     useCallback(() => {
@@ -44,6 +39,115 @@ const Search = () => {
     }, [])
   );
 
+
+  // ==============================================
+
+
+  const [recentSearches, setRecentSearches] = useState([]);
+
+  const loadRecentSearches = async () => {
+    try {
+      const data = await AsyncStorage.getItem('recent_searches');
+
+      if (data) {
+        const searches = JSON.parse(data);
+
+        setRecentSearches(
+          Array.isArray(searches) ? searches.slice(0, 10) : []
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    loadRecentSearches();
+    // fetchProducts();
+  }, []);
+
+  const saveRecentSearch = async (text) => {
+    if (!text.trim()) return;
+
+    try {
+      let searches = [...recentSearches];
+
+      // Add newest search at the top
+      searches.unshift(text);
+
+      // Keep only the latest 10 searches
+      searches = searches.slice(0, 10);
+
+      setRecentSearches(searches);
+
+      await AsyncStorage.setItem(
+        'recent_searches',
+        JSON.stringify(searches)
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
+  const filter = () => {
+    const text = search.trim();
+
+    if (!text) return;
+
+    saveRecentSearch(text);
+
+    navigation.navigate("FilteredProducts", {
+      search: text,
+    });
+
+    setSearch("");
+  };
+  
+
+  const groupedRecentSearches = recentSearches.reduce((acc, text) => {
+    const existing = acc.find(
+      item => item.text.toLowerCase() === text.toLowerCase()
+    );
+
+    if (existing) {
+      existing.count += 1;
+    } else {
+      acc.push({
+        text,
+        count: 1,
+      });
+    }
+
+    return acc;
+  }, []);
+
+  const clearRecentSearch = () => {
+    Alert.alert(
+      "Clear Recent Searches",
+      "Are you sure you want to clear all recent searches?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem("recent_searches");
+              setRecentSearches([]);
+            } catch (error) {
+              console.log(error);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <>
       <Header />
@@ -53,13 +157,14 @@ const Search = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* <Text>{JSON.stringify(products)}</Text> */}
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons
+          {/* <Ionicons
             name="search-outline"
             size={20}
             color="#7E8896"
-          />
+          /> */}
 
           <TextInput
             ref={inputRef}
@@ -71,14 +176,16 @@ const Search = () => {
             placeholderTextColor="#9CA3AF"
             returnKeyType="search"
             selectionColor="#0C3F80"
+            onSubmitEditing={filter}
           />
 
           <TouchableOpacity
             style={styles.filterButton}
             activeOpacity={0.7}
+            onPress={() => filter()}
           >
             <Ionicons
-              name="options-outline"
+              name="search-outline"
               size={20}
               color="#7E8896"
             />
@@ -86,7 +193,7 @@ const Search = () => {
         </View>
 
         {/* Popular Searches */}
-        <View style={styles.sectionHeader}>
+        {/* <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Popular Searches</Text>
         </View>
 
@@ -101,24 +208,24 @@ const Search = () => {
               <Text style={styles.tagText}>{item}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </View> */}
 
         {/* Recent Searches */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Searches</Text>
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={clearRecentSearch}>
             <Text style={styles.clearAllText}>Clear All</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.recentListContainer}>
-          {recentSearches.map((item) => (
+        {/* <View style={styles.recentListContainer}>
+          {groupedRecentSearches.map((item, index) => (
             <TouchableOpacity
-              key={item}
+              key={index}
               style={styles.recentItem}
               activeOpacity={0.7}
-              onPress={() => setSearch(item)}
+              onPress={() => setSearch(item.text)}
             >
               <View style={styles.recentLeftRow}>
                 <Ionicons
@@ -128,17 +235,85 @@ const Search = () => {
                 />
 
                 <Text style={styles.recentText}>
-                  {item}
+                  {item.text}
                 </Text>
               </View>
 
-              <Ionicons
-                name="chevron-forward-outline"
-                size={16}
-                color="#D1D5DB"
-              />
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                {item.count > 1 && (
+                  <View style={styles.countBadge}>
+                    <Text style={styles.countText}>
+                      {item.count}
+                    </Text>
+                  </View>
+                )}
+
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={16}
+                  color="#D1D5DB"
+                  style={{ marginLeft: 10 }}
+                />
+              </View>
             </TouchableOpacity>
           ))}
+        </View> */}
+        <View style={styles.recentListContainer}>
+          {groupedRecentSearches.length > 0 ? (
+            groupedRecentSearches.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.recentItem}
+                activeOpacity={0.7}
+                onPress={() => setSearch(item.text)}
+              >
+                <View style={styles.recentLeftRow}>
+                  <Ionicons
+                    name="time-outline"
+                    size={18}
+                    color="#9CA3AF"
+                  />
+
+                  <Text style={styles.recentText}>
+                    {item.text}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {item.count > 1 && (
+                    <View style={styles.countBadge}>
+                      <Text style={styles.countText}>
+                        {item.count}
+                      </Text>
+                    </View>
+                  )}
+
+                  <Ionicons
+                    name="chevron-forward-outline"
+                    size={16}
+                    color="#D1D5DB"
+                    style={{ marginLeft: 10 }}
+                  />
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="search-outline"
+                size={60}
+                color="#D1D5DB"
+              />
+
+              <Text style={styles.emptyTitle}>
+                No Recent Searches
+              </Text>
+
+              <Text style={styles.emptySubtitle}>
+                Your recent searches will appear here.
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </>
@@ -245,5 +420,24 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 15,
     color: '#4B5563',
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 50,
+  },
+
+  emptyTitle: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+  },
+
+  emptySubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#9CA3AF",
+    textAlign: "center",
   },
 });

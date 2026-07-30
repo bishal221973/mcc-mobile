@@ -131,7 +131,7 @@ const Home = ({ navigation }) => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingHorizontal: 15 }}
           renderItem={({ item }) => (
-            // <Text>{JSON.stringify(item?.options)} /////</Text>
+            // <Text>{JSON.stringify(item?.options?.filters)} /////</Text>
             <Products title={item?.options?.title} filters={item?.options?.filters} />
           )}
         />

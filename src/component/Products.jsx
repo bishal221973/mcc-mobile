@@ -23,7 +23,7 @@ const Products = ({ title, filters }) => {
         try {
             const res = await axios.get("/products", {
                 params: {
-                    category_id: filters.category_id,
+                    category_id: filters.category_id
                 },
             });
 
@@ -93,7 +93,9 @@ const Products = ({ title, filters }) => {
                     {title}
                 </Text>
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={()=>{navigation.navigate('AllProduct',{
+                    categoryId:filters.category_id
+                })}}>
                     <Text style={styles.viewAll}>View All</Text>
                 </TouchableOpacity>
             </View>

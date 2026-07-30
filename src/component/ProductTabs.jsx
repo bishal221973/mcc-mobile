@@ -94,6 +94,9 @@ const ProductTabs = ({ product }) => {
                 {activeTab === 'description' && renderDescription()}
                 {activeTab === 'specs' && renderSpecifications()}
                 {activeTab === 'reviews' && renderReviews()}
+                {/* <Text>
+                    {JSON.stringify(product?.pdf)}
+                </Text> */}
             </View>
         </View>
     );

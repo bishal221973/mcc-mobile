@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import axios from "../services/axios"
 const Review = ({ product }) => {
 
     const dummyReviews = [
@@ -28,6 +28,79 @@ const Review = ({ product }) => {
 
     const totalReviews = product?.reviews?.total || 0;
 
+    const [reviews, setReviews] = useState([]);
+
+    const fetchReviews = async () => {
+
+        try {
+
+            const response = await axios.get(
+                `/products/${product.id}/reviews`
+            );
+
+            console.log("Reviews:", response.data);
+
+            setReviews(
+                response.data.data || []
+            );
+
+
+        } catch (error) {
+
+            console.log(
+                error.response?.data || error.message
+            );
+
+        }
+
+    };
+
+    useEffect(() => {
+
+        if (product?.id) {
+            fetchReviews();
+        }
+
+    }, [product?.id]);
+
+    const timeAgo = (date) => {
+
+    const now = new Date();
+    const createdDate = new Date(date);
+
+    const seconds = Math.floor(
+        (now - createdDate) / 1000
+    );
+
+
+    const intervals = {
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60,
+    };
+
+
+    for (const interval in intervals) {
+
+        const value = Math.floor(
+            seconds / intervals[interval]
+        );
+
+        if (value >= 1) {
+
+            return `${value} ${interval}${value > 1 ? 's' : ''} ago`;
+
+        }
+
+    }
+
+
+    return "Just now";
+
+};
     return (
 
         <View style={styles.container}>
@@ -161,9 +234,10 @@ const Review = ({ product }) => {
 
 
             {/* Review List */}
+            {/* <Text>{JSON.stringify(reviews)}</Text> */}
 
             {
-                dummyReviews.map((review) => (
+                reviews.map((review) => (
 
                     <View
                         key={review.id}
@@ -220,7 +294,7 @@ const Review = ({ product }) => {
 
 
                             <Text style={styles.reviewDate}>
-                                {review.date}
+                                {timeAgo(review.created_at)}
                             </Text>
 
 
@@ -228,6 +302,9 @@ const Review = ({ product }) => {
 
 
 
+                        <Text style={styles.reviewComment}>
+                            {review.title}
+                        </Text>
                         <Text style={styles.reviewComment}>
                             {review.comment}
                         </Text>

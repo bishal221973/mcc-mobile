@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -9,7 +9,9 @@ import {
     SafeAreaView,
 } from 'react-native';
 import Header from '../../component/Header';
-const Cart = () => {
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const Cart = ({ navigation }) => {
     const [cartItems, setCartItems] = useState([
         {
             id: '1',
@@ -74,6 +76,31 @@ const Cart = () => {
 
     const shipping = subtotal > 0 ? 20 : 0;
     const total = subtotal + shipping;
+
+    const redirectLogin = async () => {
+        const token = await AsyncStorage.getItem('token'); // your auth token
+
+        if (!token) {
+            navigation.navigate('Login');
+        }
+    }
+    useEffect(() => {
+        console.log('Cart mounted');
+
+        const redirectLogin = async () => {
+            console.log('Checking token...');
+
+            const token = await AsyncStorage.getItem('token');
+            console.log('Token:', token);
+
+            if (!token) {
+                console.log('Redirecting...');
+                navigation.replace('Login'); // or navigate
+            }
+        };
+
+        redirectLogin();
+    }, []);
 
     const renderItem = ({ item }) => (
         <>

@@ -1,21 +1,55 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React, { useState } from 'react'
+import axios from "../services/axios"
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('/customer/login', {
+        email,
+        password,
+        device_name: 'android',
+      });
+
+      console.log(response.data);
+
+      const token = response.data.data.access_token;
+      const customer = response.data.data;
+
+      // Save token and customer
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('customer', JSON.stringify(customer));
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Drawer' }], // Replace with your home screen name
+      });
+
+
+    } catch (error) {
+      console.log(error.response?.data);
+
+      Alert.alert(
+        'Login Failed',
+        error.response?.data?.message || 'Invalid email or password.'
+      );
+    }
+  };
 
   return (
     // KeyboardAvoidingView prevents the keyboard from hiding input fields
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        
+
         {/* Top Branding Section */}
         <View style={styles.headerSection}>
-          <Image 
+          <Image
             source={require('../../assets/images/logo.png')}
             style={styles.logo}
             resizeMode="contain"
@@ -53,17 +87,17 @@ const Login = ({ navigation }) => {
           </View>
 
           {/* Forgot Password Link */}
-          <TouchableOpacity style={styles.forgotButton}>
+          <TouchableOpacity style={styles.forgotButton} >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>
 
         {/* Bottom Actions Section */}
         <View style={styles.actionSection}>
-          <TouchableOpacity 
-            style={styles.loginButton} 
+          <TouchableOpacity
+            style={styles.loginButton}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => handleLogin()}
           >
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>

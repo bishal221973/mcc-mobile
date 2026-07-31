@@ -16,6 +16,7 @@ import ProductTabs from '../../component/ProductTabs';
 import RelatedProducts from '../../component/RelatedProducts';
 
 import axios from '../../services/axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const ProductShow = ({ route }) => {
@@ -52,13 +53,44 @@ const ProductShow = ({ route }) => {
 
 
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
+        // try {
+        //     const res = await axios.post('/customer/cart/add', {
+        //         product_id: id,
+        //         is_buy_now: 0,
+        //         quantity: quantity,
+        //     });
 
-        Alert.alert(
-            'Success',
-            `${quantity} item(s) added to cart`
-        );
+        //     console.log('Cart added:', res.data);
 
+        //     Alert.alert('Success', 'Product added to cart');
+
+
+        // } catch (error) {
+        //     console.error('Add to cart failed:', error.response?.data || error.message);
+        // }
+        try {
+            const cart = JSON.parse(await AsyncStorage.getItem('cart')) || [];
+
+            const index = cart.findIndex(item => item.product_id === product.id);
+
+            if (index > -1) {
+                cart[index].quantity += quantity;
+            } else {
+                cart.push({
+                    product_id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.base_image?.small_image_url,
+                    quantity,
+                });
+            }
+
+            await AsyncStorage.setItem('cart', JSON.stringify(cart));
+            Alert.alert('Success', 'Product added to cart');
+        } catch (err) {
+            console.log(err);
+        }
     };
 
 
@@ -144,7 +176,7 @@ const ProductShow = ({ route }) => {
 
 
                     </View>
-                    <Text style={[styles.productPrice,{marginTop:5}]}>
+                    <Text style={[styles.productPrice, { marginTop: 5 }]}>
                         {product.formatted_price}
                     </Text>
 

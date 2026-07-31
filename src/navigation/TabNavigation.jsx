@@ -24,6 +24,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import CartService from "../services/cart"
+
 
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
@@ -35,13 +37,24 @@ const Tabs = () => {
   const [cartCount, setCartCount] = useState(0);
 
   const loadCart = async () => {
-    //  Alert.alert('Success', 'Product added to cart');
-    try {
-      const cart = await AsyncStorage.getItem('cart');
-      const items = cart ? JSON.parse(cart) : [];
-      setCartCount(items.length);
-    } catch (e) {
-      console.log(e);
+    const token = await AsyncStorage.getItem('token');
+
+
+    if (token) {
+      try {
+        const cart = await CartService.getServerCart();
+        setCartCount(cart?.items.length);
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      try {
+       
+        const cart = await CartService.getLocalCart();
+        setCartCount(cart.length);
+      } catch (e) {
+        console.log(e);
+      }
     }
   };
 
@@ -52,19 +65,25 @@ const Tabs = () => {
   useFocusEffect(
     useCallback(() => {
       loadCart();
+
     }, [])
   );
 
-const navigation = useNavigation();
+  const navigation = useNavigation();
 
-useEffect(() => {
-  const unsubscribe = navigation.addListener('state', () => {
-    loadCart();
-  });
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('state', () => {
+      loadCart();
 
-  return unsubscribe;
-}, [navigation]);
+      syncCarts();
+    });
 
+    return unsubscribe;
+  }, [navigation]);
+
+  const syncCarts = async () => {
+    await CartService.syncCart();
+  }
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

@@ -17,9 +17,12 @@ const Login = ({ navigation }) => {
 
       console.log(response.data);
 
-      const token = response.data.data.access_token;
+      const token = response.data.token;
       const customer = response.data.data;
 
+      console.log("///////////////////////////////////////////////////////////")
+      console.log(response.data?.token)
+      console.log("///////////////////////////////////////////////////////////")
       // Save token and customer
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('customer', JSON.stringify(customer));

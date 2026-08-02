@@ -50,7 +50,7 @@ const Cart = ({ navigation }) => {
     ]);
 
     const [carts, setCarts] = useState([]);
-    const [cartData,setCartData]=useState([]);
+    const [cartData, setCartData] = useState([]);
     const loadCart = async () => {
         const token = await AsyncStorage.getItem('token');
 
@@ -192,6 +192,7 @@ const Cart = ({ navigation }) => {
                     showsVerticalScrollIndicator={false}
                 />
 
+                
                 <View style={styles.summary}>
                     <Text style={styles.summaryTitle}>Order Summary</Text>
 
@@ -213,7 +214,10 @@ const Cart = ({ navigation }) => {
                             <Text style={{ fontSize: 12, color: '#999' }}>Total amount to be paid</Text>
                         </View>
 
-                        <TouchableOpacity style={styles.checkoutButton}>
+                        <TouchableOpacity
+                            style={styles.checkoutButton}
+                            onPress={() => navigation.navigate('Checkout')}
+                        >
                             <Text style={styles.checkoutText}>
                                 Proceed
                             </Text>

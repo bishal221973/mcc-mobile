@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import Toast from 'react-native-toast-message';
+import CartService from "../../services/cart"
+import axios from "../../services/axios"
 const Cart = ({ navigation }) => {
     const [cartItems, setCartItems] = useState([
         {
@@ -47,22 +49,69 @@ const Cart = ({ navigation }) => {
         },
     ]);
 
-    const increaseQty = id => {
-        setCartItems(items =>
-            items.map(item =>
-                item.id === id ? { ...item, qty: item.qty + 1 } : item,
-            ),
-        );
+    const [carts, setCarts] = useState([]);
+    const [cartData,setCartData]=useState([]);
+    const loadCart = async () => {
+        const token = await AsyncStorage.getItem('token');
+
+
+        if (token) {
+            try {
+                const cart = await CartService.getServerCart();
+
+                setCarts(cart?.items);
+                setCartData(cart);
+            } catch (e) {
+                console.log(e);
+            }
+        } else {
+            try {
+
+
+                const cart = await CartService.getLocalCart();
+                setCarts(cart);
+            } catch (e) {
+                console.log(e);
+            }
+        }
     };
 
-    const decreaseQty = id => {
-        setCartItems(items =>
-            items.map(item =>
-                item.id === id && item.qty > 1
-                    ? { ...item, qty: item.qty - 1 }
-                    : item,
-            ),
-        );
+    useEffect(() => {
+        loadCart();
+    }, []);
+
+
+
+    const decreaseQty = async (itemId, currentQty) => {
+        try {
+            const newQty = currentQty - 1;
+
+            const response = await axios.put('/customer/cart/update', {
+                qty: {
+                    [itemId]: newQty
+                }
+            });
+
+            loadCart();
+            return response.data;
+        } catch (error) {
+            console.error(error.response?.data || error.message);
+        }
+    };
+    const increaseQty = async (itemId, currentQty) => {
+        try {
+            const newQty = currentQty + 1;
+
+            const response = await axios.put('/customer/cart/update', {
+                qty: {
+                    [itemId]: newQty
+                }
+            });
+            loadCart();
+            return response.data;
+        } catch (error) {
+            console.error(error.response?.data || error.message);
+        }
     };
 
     const removeItem = id => {
@@ -77,15 +126,8 @@ const Cart = ({ navigation }) => {
     const shipping = subtotal > 0 ? 20 : 0;
     const total = subtotal + shipping;
 
-    const redirectLogin = async () => {
-        const token = await AsyncStorage.getItem('token'); // your auth token
 
-        if (!token) {
-            navigation.navigate('Login');
-        }
-    }
     useEffect(() => {
-        console.log('Cart mounted');
 
         const redirectLogin = async () => {
             console.log('Checking token...');
@@ -104,38 +146,34 @@ const Cart = ({ navigation }) => {
 
     const renderItem = ({ item }) => (
         <>
-
+            {/* <Text>{JSON.stringify(item?.)}</Text> */}
             <View style={styles.card}>
-                <Image source={item.image} style={styles.image} />
+                <Image source={{ uri: item?.product?.product?.images[0]?.small_image_url ?? item?.product?.images[0]?.small_image_url }} style={styles.image} />
                 <View style={styles.info}>
                     <Text numberOfLines={2} style={styles.name}>
-                        {item.name}
+                        {item?.product?.product?.name ?? item?.product?.name}
                     </Text>
 
-                    <Text style={styles.variant}>{item.variant}</Text>
+                    {/* <Text style={styles.variant}>{item.variant}</Text> */}
 
-                    <Text style={styles.price}>${item.price}</Text>
+                    <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price}</Text>
 
                     <View style={styles.bottomRow}>
                         <View style={styles.qtyContainer}>
                             <TouchableOpacity
-                                onPress={() => decreaseQty(item.id)}
+                                onPress={() => decreaseQty(item.id, item.quantity)}
                                 style={styles.qtyButton}>
                                 <Text style={styles.qtyText}>−</Text>
                             </TouchableOpacity>
 
-                            <Text style={styles.qty}>{item.qty}</Text>
+                            <Text style={styles.qty}>{item?.quantity}</Text>
 
                             <TouchableOpacity
-                                onPress={() => increaseQty(item.id)}
+                                onPress={() => increaseQty(item.id, item.quantity)}
                                 style={styles.qtyButton}>
                                 <Text style={styles.qtyText}>+</Text>
                             </TouchableOpacity>
                         </View>
-
-                        <TouchableOpacity onPress={() => removeItem(item.id)}>
-                            <Text style={styles.remove}>Remove</Text>
-                        </TouchableOpacity>
                     </View>
                 </View>
             </View>
@@ -146,8 +184,9 @@ const Cart = ({ navigation }) => {
         <>
             <Header />
             <SafeAreaView style={styles.container}>
+                {/* <Text>{JSON.stringify(cartData?.formatted_sub_total)}</Text> */}
                 <FlatList
-                    data={cartItems}
+                    data={carts}
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     showsVerticalScrollIndicator={false}
@@ -158,19 +197,19 @@ const Cart = ({ navigation }) => {
 
                     <View style={styles.row}>
                         <Text>Subtotal</Text>
-                        <Text>${subtotal}</Text>
+                        <Text>{cartData?.formatted_sub_total}</Text>
                     </View>
 
                     <View style={styles.row}>
-                        <Text>Shipping</Text>
-                        <Text>${shipping}</Text>
+                        <Text>TAX</Text>
+                        <Text>{cartData?.formatted_tax_total}</Text>
                     </View>
 
                     <View style={styles.divider} />
 
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                         <View>
-                            <Text style={styles.totalText}>${total}</Text>
+                            <Text style={styles.totalText}>{cartData?.formatted_base_grand_total}</Text>
                             <Text style={{ fontSize: 12, color: '#999' }}>Total amount to be paid</Text>
                         </View>
 
@@ -212,8 +251,8 @@ const styles = StyleSheet.create({
     },
 
     image: {
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
         borderRadius: 10,
         backgroundColor: '#eee',
     },
@@ -225,7 +264,7 @@ const styles = StyleSheet.create({
     },
 
     name: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '600',
         color: '#222',
     },
@@ -239,8 +278,8 @@ const styles = StyleSheet.create({
     price: {
         color: '#0C3F80',
         fontWeight: 'bold',
-        fontSize: 18,
-        marginTop: 8,
+        fontSize: 15,
+        marginTop: 0,
     },
 
     bottomRow: {
@@ -258,8 +297,8 @@ const styles = StyleSheet.create({
     },
 
     qtyButton: {
-        width: 35,
-        height: 35,
+        width: 30,
+        height: 30,
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -18,7 +18,8 @@ import RelatedProducts from '../../component/RelatedProducts';
 import axios from '../../services/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CartService from "../../services/cart"
-
+import Toast from 'react-native-toast-message';
+import Header from '../../component/Header';
 const ProductShow = ({ route }) => {
 
     const { id } = route.params;
@@ -55,28 +56,6 @@ const ProductShow = ({ route }) => {
 
     const handleAddToCart = async () => {
 
-        // try {
-        //     const cart = JSON.parse(await AsyncStorage.getItem('cart')) || [];
-
-        //     const index = cart.findIndex(item => item.product_id === product.id);
-
-        //     if (index > -1) {
-        //         cart[index].quantity += quantity;
-        //     } else {
-        //         cart.push({
-        //             product_id: product.id,
-        //             name: product.name,
-        //             price: product.price,
-        //             image: product.base_image?.small_image_url,
-        //             quantity,
-        //         });
-        //     }
-
-        //     await AsyncStorage.setItem('cart', JSON.stringify(cart));
-        //     Alert.alert('Success', 'Product added to cart');
-        // } catch (err) {
-        //     console.log(err);
-        // }
 
         console.log("start")
 
@@ -84,11 +63,11 @@ const ProductShow = ({ route }) => {
 
 
         if (token) {
-            // console.log(product)
-            // Alert.alert("success",product.id)
-            const resc= await CartService.addServerItem(
+            const pId = product.id;
+            
+            const resc = await CartService.addServerItem(
                 {
-                    product_id: product.id,
+                    product_id: pId.toString(),
                 },
                 quantity
             );
@@ -98,23 +77,24 @@ const ProductShow = ({ route }) => {
         } else {
             await CartService.addToLocalCart(
                 {
-                    product_id: product.id,
+                    product: product,
                 },
                 quantity
             );
         }
 
 
-        console.log("end")
+        Toast.show({
+            type: 'success',
+            text1: 'Added to Cart',
+            text2: 'Product has been added to your cart 🛒',
+        });
     };
 
 
     const handleBuyNow = () => {
 
-        Alert.alert(
-            'Checkout',
-            `Buying ${quantity} item(s)`
-        );
+
 
     };
 
@@ -135,7 +115,7 @@ const ProductShow = ({ route }) => {
     return (
 
         <SafeAreaView style={styles.mainWrapper}>
-
+            <Header />
 
             <ScrollView
                 style={styles.container}

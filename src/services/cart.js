@@ -2,6 +2,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from "./axios"
+import { Alert } from 'react-native';
 const CART_KEY = 'cart';
 
 class CartService {
@@ -25,7 +26,7 @@ class CartService {
             cart[index].quantity += quantity;
         } else {
             cart.push({
-                product_id: product.product_id,
+                product: product,
                 quantity,
             });
         }
@@ -47,21 +48,60 @@ class CartService {
 
     // Fetch server cart
     async getServerCart() {
-        console.log("Callaed Live")
-        const res = await api.get('/customer/cart');
-        console.log(res)
+        try {
+            console.log("Callaed Live")
+             const token = await AsyncStorage.getItem('token');
+             console.log(token)
+            const res = await api.get('/customer/cart');
+            console.log("...........................")
+            console.log(res)
+            console.log("...........................")
 
-        return res.data.data;
+            return res.data.data;
+        } catch (error) {
+            console.log("/////////////////////////////////////")
+            console.log(error)
+            console.log("/////////////////////////////////////")
+        }
     }
 
     // Add item to server
+    // async addServerItem(productId, quantity) {
+    //     try {
+    //         return api.post( `/customer/cart/add/${productId}`, {
+    //         product_id: productId,
+    //         quantity:quantity,
+    //         is_buy_now: 0,
+    //     });
+    //     } catch (error) {
+    //         console.log("+++++++++++++++++++++++++++++++++++++++++++++")
+    //         console.log(error) 
+    //         console.log("+++++++++++++++++++++++++++++++++++++++++++++")
+    //     }
+    //     Alert.alert('success',"hlo");
+    // }
+
     async addServerItem(productId, quantity) {
-        return api.post('/customer/cart/add', {
-            product_id: productId,
-            quantity,
-            is_buy_now: 0,
-        });
+    try {
+        const response = await api.post(
+            `/customer/cart/add/${productId?.product_id}`,
+            {
+                product_id:Number(productId?.product_id),
+                quantity,
+                is_buy_now: 0,
+            }
+        );
+
+        
+        return response.data;
+    } catch (error) {
+        console.log("Status:", error.response?.status);
+        console.log("Data:", error.response?.data);
+        console.log("Message:", error.message);
+
+        // Alert.alert("Error", JSON.stringify(error.response?.data));
     }
+}
 
     // Sync local cart to server
     async syncCart() {
@@ -79,7 +119,7 @@ class CartService {
             }
         }
 
-        await this.clearLocalCart();
+        // await this.clearLocalCart();
     }
 
     // Get current cart

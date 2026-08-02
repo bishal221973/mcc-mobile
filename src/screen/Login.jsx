@@ -20,10 +20,6 @@ const Login = ({ navigation }) => {
       const token = response.data.token;
       const customer = response.data.data;
 
-      console.log("///////////////////////////////////////////////////////////")
-      console.log(response.data?.token)
-      console.log("///////////////////////////////////////////////////////////")
-      // Save token and customer
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('customer', JSON.stringify(customer));
       navigation.reset({

@@ -49,7 +49,7 @@ const Tabs = () => {
       }
     } else {
       try {
-       
+
         const cart = await CartService.getLocalCart();
         setCartCount(cart.length);
       } catch (e) {
@@ -83,6 +83,10 @@ const Tabs = () => {
 
   const syncCarts = async () => {
     await CartService.syncCart();
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      await CartService.syncCart();
+    }
   }
   return (
     <Tab.Navigator

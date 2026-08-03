@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import SelectCountry from "./SelectCountry"
+import axios from "../services/axios"
 const Input = ({
     icon,
     label,
@@ -55,7 +57,7 @@ export default function Checkout() {
         email: '',
         vatId: '',
         streetAddress: '',
-        country: '',
+        country: { 'id': 158, 'code': 'NP', 'name': 'Nepal' },
         state: '',
         city: '',
         zipCode: '',
@@ -69,8 +71,23 @@ export default function Checkout() {
         });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         console.log(formData);
+        const response = await axios.post('/customer/addresses', {
+            company_name: formData.companyName,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            address: [formData.streetAddress],
+            country: formData.country.code,
+            state: formData.state,
+            city: formData.city,
+            postcode: formData.zipCode,
+            phone: formData.telephone,
+            default_address: 0,
+            vat_id: formData.vatId
+
+        });
         setAddressModalVisible(false);
     };
 
@@ -177,7 +194,7 @@ export default function Checkout() {
                                 placeholder="Street Address"
                             />
 
-                            <Input
+                            {/* <Input
                                 icon="earth-outline"
                                 label="Country"
                                 value={formData.country}
@@ -185,7 +202,17 @@ export default function Checkout() {
                                     handleInputChange('country', text)
                                 }
                                 placeholder="Country"
+                            /> */}
+                            <SelectCountry
+                                value={formData.country}
+                                onChange={(country) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        country,
+                                    }))
+                                }
                             />
+                            {/* <Text>{JSON.stringify(formData?.country)}</Text> */}
 
                             <View style={styles.row}>
                                 <View style={styles.flexField}>

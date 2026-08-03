@@ -14,6 +14,7 @@ import Toast from 'react-native-toast-message';
 import CartService from "../../services/cart"
 import axios from "../../services/axios"
 import AddressForm from "../../component/AddressForm"
+import AddressList from "../../component/AddressList"
 
 // FIXED: Destructured navigation from props to prevent crash during redirect
 const Checkout = ({ navigation }) => {
@@ -137,6 +138,7 @@ const Checkout = ({ navigation }) => {
             </View>
 
             <View style={[styles.summary, { marginTop: 10, marginBottom: 20 }]}>
+                <AddressList/>
                 <AddressForm />
             </View>
         </View>

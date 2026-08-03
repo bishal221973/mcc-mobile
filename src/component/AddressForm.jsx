@@ -47,7 +47,7 @@ const Input = ({
     );
 };
 
-export default function Checkout() {
+export default function Checkout({onSuccess}) {
     const [addressModalVisible, setAddressModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -72,28 +72,43 @@ export default function Checkout() {
     };
 
     const handleSubmit = async () => {
-        console.log(formData);
-        const response = await axios.post('/customer/addresses', {
-            company_name: formData.companyName,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-            address: [formData.streetAddress],
-            country: formData.country.code,
-            state: formData.state,
-            city: formData.city,
-            postcode: formData.zipCode,
-            phone: formData.telephone,
-            default_address: 0,
-            vat_id: formData.vatId
+        try {
+            const response = await axios.post('/customer/addresses', {
+                company_name: formData.companyName,
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                email: formData.email,
+                address: [formData.streetAddress],
+                country: formData.country.code,
+                state: formData.state,
+                city: formData.city,
+                postcode: formData.zipCode,
+                phone: formData.telephone,
+                default_address: 0,
+                vat_id: formData.vatId
 
-        });
-        setAddressModalVisible(false);
+            });
+            onSuccess?.();
+            setAddressModalVisible(false);
+        } catch (error) {
+            console.log('Status:', error.response?.status);
+            console.log('Headers:', error.response?.headers);
+            console.log('Response:', JSON.stringify(error.response?.data, null, 2));
+            console.log('Message:', error.message);
+            console.log('Config:', error.config);
+
+            // Laravel/Bagisto validation errors
+            if (error.response?.data?.errors) {
+                Object.entries(error.response.data.errors).forEach(([field, messages]) => {
+                    console.log(`${field}: ${messages.join(', ')}`);
+                });
+            }
+        }
     };
 
     return (
-        <View style={{ padding: 16 }}>
-            <Text style={styles.heading}>Billing Address</Text>
+        <View style={{ marginTop: 10 }}>
+
 
             <TouchableOpacity
                 style={styles.button}
@@ -286,12 +301,7 @@ export default function Checkout() {
 }
 
 const styles = StyleSheet.create({
-    heading: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#222',
-        marginBottom: 15,
-    },
+
 
     button: {
         borderWidth: 1,

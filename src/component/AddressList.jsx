@@ -10,14 +10,24 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from '../services/axios';
 
-const AddressList = () => {
+const AddressList = ({ onSelect,refresh }) => {
   const [addresses, setAddresses] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchAddress = async () => {
     try {
       const response = await axios.get('/customer/addresses');
-      setAddresses(response.data.data || []);
+      const data = response.data.data || [];
+
+      setAddresses(data);
+
+      const defaultAddress = data.find(item => item.default_address);
+
+      if (defaultAddress) {
+        setSelectedId(defaultAddress.id);
+        onSelect?.(defaultAddress);
+      }
     } catch (error) {
       console.log(error.response?.data || error.message);
     } finally {
@@ -27,68 +37,96 @@ const AddressList = () => {
 
   useEffect(() => {
     fetchAddress();
-  }, []);
+  }, [refresh]);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.titleContainer}>
+  const selectAddress = item => {
+    setSelectedId(item.id);
+    // onSelect?.(item);
+  };
+
+  const renderItem = ({ item }) => {
+    const selected = selectedId === item.id;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => selectAddress(item)}
+        style={[
+          styles.card,
+          selected && styles.selectedCard,
+        ]}>
+        <View style={styles.header}>
+          <View style={styles.left}>
+            <Ionicons
+              name={
+                selected
+                  ? 'radio-button-on'
+                  : 'radio-button-off'
+              }
+              size={22}
+              color="#0C3F80"
+            />
+
+            <View style={{ marginLeft: 10 }}>
+              <Text style={styles.name}>
+                {item.first_name} {item.last_name}
+              </Text>
+
+              {!!item.company_name && (
+                <Text style={styles.company}>
+                  {item.company_name}
+                </Text>
+              )}
+            </View>
+          </View>
+
+         
+        </View>
+
+        <View style={styles.addressRow}>
           <Ionicons
-            name={
-              item.default_address
-                ? 'radio-button-on'
-                : 'radio-button-off'
-            }
-            size={20}
-            color="#4CAF50"
+            name="location-outline"
+            size={18}
+            color="#666"
           />
-          <Text style={styles.name}>
-            {item.first_name} {item.last_name}
+
+          <Text style={styles.address}>
+            {Array.isArray(item.address)
+              ? item.address.join(', ')
+              : item.address}
+            {', '}
+            {item.city}, {item.state}
+            {', '}
+            {item.country} - {item.postcode}
           </Text>
         </View>
 
-        {!!item.company_name && (
-        <Text style={styles.company}>{item.company_name}</Text>
-      )}
-      </View>
-
-
-      <View style={styles.row}>
-        <Ionicons name="location-outline" size={16} color="#666" />
-        <Text style={styles.info}>
-          {Array.isArray(item.address)
-            ? item.address.join(', ')
-            : item.address}
-          {', '}
-          {item.city}, {item.state}
-          {'\n'}
-          {item.country} - {item.postcode}
-        </Text>
-      </View>
-
-     
-    </View>
-  );
+        
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
+      <ActivityIndicator
+        size="large"
+        color="#0C3F80"
+        style={{ marginTop: 30 }}
+      />
     );
   }
 
   return (
     <FlatList
       data={addresses}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={item => item.id.toString()}
       renderItem={renderItem}
-      contentContainerStyle={styles.container}
+      scrollEnabled={false}
+      ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
       ListEmptyComponent={
-        <View style={styles.empty}>
-          <Ionicons name="location-outline" size={70} color="#ccc" />
-          <Text style={styles.emptyText}>No addresses found</Text>
-        </View>
+        <Text style={{ textAlign: 'center', marginTop: 30 }}>
+          No Address Found
+        </Text>
       }
     />
   );
@@ -97,115 +135,102 @@ const AddressList = () => {
 export default AddressList;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 30,
-    backgroundColor: '#F5F5F5',
-  },
-
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 15,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#E5E5E5',
+    padding: 15,
+  },
+
+  selectedCard: {
+    borderColor: '#0C3F80',
+    borderWidth: 2,
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
   },
 
-  titleContainer: {
+  left: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
 
   name: {
-    marginLeft: 8,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: '#222',
   },
 
   company: {
-    color: '#666',
-    marginBottom: 10,
-    fontSize: 14,
+    color: '#777',
+    marginTop: 3,
   },
 
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-  },
-
-  info: {
-    marginLeft: 10,
-    color: '#555',
-    flex: 1,
-    lineHeight: 22,
-    fontSize: 14,
-  },
-
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 12,
-  },
-
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 20,
-  },
-
-  edit: {
-    marginLeft: 5,
-    color: '#2196F3',
-    fontWeight: '600',
-  },
-
-  delete: {
-    marginLeft: 5,
-    color: '#F44336',
-    fontWeight: '600',
-  },
-
-  defaultBadge: {
-    backgroundColor: '#E8F5E9',
+  badge: {
+    backgroundColor: '#E7F6EC',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
   },
 
-  defaultText: {
+  badgeText: {
     color: '#2E7D32',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 12,
   },
 
-  empty: {
-    alignItems: 'center',
-    marginTop: 60,
+  addressRow: {
+    flexDirection: 'row',
+    marginTop: 15,
   },
 
-  emptyText: {
+  address: {
+    marginLeft: 10,
+    flex: 1,
+    color: '#555',
+    lineHeight: 22,
+  },
+
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 10,
-    fontSize: 16,
-    color: '#999',
+  },
+
+  phone: {
+    marginLeft: 10,
+    color: '#555',
+  },
+
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+    paddingTop: 12,
+  },
+
+  action: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 25,
+  },
+
+  edit: {
+    marginLeft: 5,
+    color: '#0C3F80',
+    fontWeight: '600',
+  },
+
+  delete: {
+    marginLeft: 5,
+    color: '#e53935',
+    fontWeight: '600',
   },
 });

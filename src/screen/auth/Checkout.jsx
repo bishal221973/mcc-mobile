@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     FlatList,
     SafeAreaView,
+    Alert,
 } from 'react-native';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +22,8 @@ const Checkout = ({ navigation }) => {
 
     const [carts, setCarts] = useState([]);
     const [cartData, setCartData] = useState([]);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [refreshAddress, setRefreshAddress] = useState(0);
 
     const loadCart = async () => {
         const token = await AsyncStorage.getItem('token');
@@ -86,7 +89,7 @@ const Checkout = ({ navigation }) => {
 
             if (!token) {
                 console.log('Redirecting...');
-                navigation.replace('Login'); 
+                navigation.replace('Login');
             }
         };
         redirectLogin();
@@ -94,9 +97,9 @@ const Checkout = ({ navigation }) => {
 
     const renderItem = ({ item }) => (
         <View style={styles.card}>
-            <Image 
-                source={{ uri: item?.product?.product?.images[0]?.small_image_url ?? item?.product?.images[0]?.small_image_url }} 
-                style={styles.image} 
+            <Image
+                source={{ uri: item?.product?.product?.images[0]?.small_image_url ?? item?.product?.images[0]?.small_image_url }}
+                style={styles.image}
             />
             <View style={styles.info}>
                 <Text numberOfLines={2} style={styles.name}>
@@ -110,23 +113,29 @@ const Checkout = ({ navigation }) => {
                         <Text style={[styles.price, { color: '#000', fontSize: 13 }]}>{item.quantity}</Text>
                     </View>
 
-                   
+
                 </View>
             </View>
         </View>
     );
 
+    const handleAddressAdded = () => {
+        // Alert.alert('sadad','asdasd')
+        setRefreshAddress(prev => prev + 1);
+    };
+
+
     // FIXED: Wrapped non-list items into a single function component to safely handle screen scrolling behaviors
     const renderFooter = () => (
-        <View style={{marginTop:5,elevation:10}}>
+        <View style={{ marginTop: 5, elevation: 10 }}>
             <View style={styles.summary}>
                 <View style={styles.row}>
-                    <Text style={[styles.totalText,{color:'#303030'}]}>Subtotal</Text>
+                    <Text style={[styles.totalText, { color: '#303030' }]}>Subtotal</Text>
                     <Text>{cartData?.formatted_sub_total}</Text>
                 </View>
 
                 <View style={styles.row}>
-                    <Text style={[styles.totalText,{color:'#303030'}]}>TAX</Text>
+                    <Text style={[styles.totalText, { color: '#303030' }]}>TAX</Text>
                     <Text>{cartData?.formatted_tax_total}</Text>
                 </View>
 
@@ -138,11 +147,19 @@ const Checkout = ({ navigation }) => {
             </View>
 
             <View style={[styles.summary, { marginTop: 10, marginBottom: 20 }]}>
-                <AddressList/>
-                <AddressForm />
-            </View>
+
+                <Text style={styles.heading}>Billing Address</Text>
+                <AddressList
+                    selected={selectedAddress}
+                    onSelect={setSelectedAddress}
+                    refresh={refreshAddress}
+                />
+                <AddressForm
+                    onSuccess={handleAddressAdded}
+                />            </View>
         </View>
     );
+
 
     return (
         <>
@@ -168,6 +185,12 @@ const Checkout = ({ navigation }) => {
 export default Checkout;
 
 const styles = StyleSheet.create({
+    heading: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#222',
+        marginBottom: 15,
+    },
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',

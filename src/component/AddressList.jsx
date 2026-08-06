@@ -10,7 +10,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from '../services/axios';
 
-const AddressList = ({ onSelect,refresh }) => {
+const AddressList = ({ onSelectAddress,refresh }) => {
   const [addresses, setAddresses] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ const AddressList = ({ onSelect,refresh }) => {
 
       if (defaultAddress) {
         setSelectedId(defaultAddress.id);
-        onSelect?.(defaultAddress);
+        onSelectAddress?.(defaultAddress);
       }
     } catch (error) {
       console.log(error.response?.data || error.message);
@@ -37,11 +37,11 @@ const AddressList = ({ onSelect,refresh }) => {
 
   useEffect(() => {
     fetchAddress();
-  }, [refresh]);
+  }, []);
 
   const selectAddress = item => {
     setSelectedId(item.id);
-    // onSelect?.(item);
+    onSelectAddress?.(item?.id);
   };
 
   const renderItem = ({ item }) => {
@@ -106,15 +106,15 @@ const AddressList = ({ onSelect,refresh }) => {
     );
   };
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        size="large"
-        color="#0C3F80"
-        style={{ marginTop: 30 }}
-      />
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <ActivityIndicator
+  //       size="large"
+  //       color="#0C3F80"
+  //       style={{ marginTop: 30 }}
+  //     />
+  //   );
+  // }
 
   return (
     <FlatList

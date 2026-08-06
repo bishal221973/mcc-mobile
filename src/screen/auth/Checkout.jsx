@@ -16,7 +16,8 @@ import CartService from "../../services/cart"
 import axios from "../../services/axios"
 import AddressForm from "../../component/AddressForm"
 import AddressList from "../../component/AddressList"
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import IsSameShipping from "../../component/IsSameShipping"
 // FIXED: Destructured navigation from props to prevent crash during redirect
 const Checkout = ({ navigation }) => {
 
@@ -24,6 +25,169 @@ const Checkout = ({ navigation }) => {
     const [cartData, setCartData] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [refreshAddress, setRefreshAddress] = useState(0);
+    const [isSameShippingAddress, setIsSameShippingAddress] = useState(false);
+    const [shippingAddress, setShippingAddress] = useState(null);
+    const [addresses, setAddresses] = useState([]);
+
+    const toggleShippingAddress = (checked) => {
+        // Alert.alert('success', checked ? "hlo" : '1')
+        setIsSameShippingAddress(checked);
+        // setShippingAddress(id ?? null);
+        if (checked) {
+            setShippingAddress(selectedAddress)
+        } else {
+            setShippingAddress(null)
+        }
+    }
+
+    const fetchAddress = async () => {
+        try {
+            const response = await axios.get('/customer/addresses');
+            const data = response.data.data || [];
+
+            setAddresses(data);
+
+            const defaultAddress = data.find(item => item.default_address);
+
+            if (defaultAddress) {
+                setSelectedAddress(defaultAddress.id);
+                onSelectAddress?.(defaultAddress);
+            }
+        } catch (error) {
+            console.log(error.response?.data || error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAddress();
+    }, []);
+
+    const renderAddress = ({ item }) => {
+        const selected = selectedAddress?.id === item.id;
+
+        return (
+            <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setSelectedAddress(item)}
+                style={[
+                    styles.card,
+                    selected && styles.selectedCard,
+                ]}>
+                <View style={styles.header}>
+                    <View style={styles.left}>
+                        <Ionicons
+                            name={
+                                selected
+                                    ? 'radio-button-on'
+                                    : 'radio-button-off'
+                            }
+                            size={22}
+                            color="#0C3F80"
+                        />
+
+                        <View style={{ marginLeft: 10 }}>
+                            <Text style={styles.name}>
+                                {item.first_name} {item.last_name}
+                            </Text>
+
+                            {!!item.company_name && (
+                                <Text style={styles.company}>
+                                    {item.company_name}
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+
+
+                </View>
+
+                <View style={styles.addressRow}>
+                    <Ionicons
+                        name="location-outline"
+                        size={18}
+                        color="#666"
+                    />
+
+                    <Text style={styles.address}>
+                        {Array.isArray(item.address)
+                            ? item.address.join(', ')
+                            : item.address}
+                        {', '}
+                        {item.city}, {item.state}
+                        {', '}
+                        {item.country} - {item.postcode}
+                    </Text>
+                </View>
+
+
+            </TouchableOpacity>
+        );
+    };
+
+    const renderShippingAddress = ({ item }) => {
+        const selected = shippingAddress?.id === item.id;
+
+        return (
+            <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setShippingAddress(item)}
+                style={[
+                    styles.card,
+                    selected && styles.selectedCard,
+                ]}>
+                    {/* <Text>{JSON.stringify(shippingAddress)}</Text> */}
+                <View style={styles.header}>
+                    <View style={styles.left}>
+                        <Ionicons
+                            name={
+                                selected
+                                    ? 'radio-button-on'
+                                    : 'radio-button-off'
+                            }
+                            size={22}
+                            color="#0C3F80"
+                        />
+
+                        <View style={{ marginLeft: 10 }}>
+                            <Text style={styles.name}>
+                                {item.first_name} {item.last_name}
+                            </Text>
+
+                            {!!item.company_name && (
+                                <Text style={styles.company}>
+                                    {item.company_name}
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+
+
+                </View>
+
+                <View style={styles.addressRow}>
+                    <Ionicons
+                        name="location-outline"
+                        size={18}
+                        color="#666"
+                    />
+
+                    <Text style={styles.address}>
+                        {Array.isArray(item.address)
+                            ? item.address.join(', ')
+                            : item.address}
+                        {', '}
+                        {item.city}, {item.state}
+                        {', '}
+                        {item.country} - {item.postcode}
+                    </Text>
+                </View>
+
+
+            </TouchableOpacity>
+        );
+    };
 
     const loadCart = async () => {
         const token = await AsyncStorage.getItem('token');
@@ -120,7 +284,6 @@ const Checkout = ({ navigation }) => {
     );
 
     const handleAddressAdded = () => {
-        // Alert.alert('sadad','asdasd')
         setRefreshAddress(prev => prev + 1);
     };
 
@@ -146,17 +309,88 @@ const Checkout = ({ navigation }) => {
                 </View>
             </View>
 
-            <View style={[styles.summary, { marginTop: 10, marginBottom: 20 }]}>
+            <View style={[styles.summary, { marginTop: 10, marginBottom: 10 }]}>
 
                 <Text style={styles.heading}>Billing Address</Text>
-                <AddressList
+                {/* <AddressList
                     selected={selectedAddress}
-                    onSelect={setSelectedAddress}
+                    onSelectAddress={setSelectedAddress}
                     refresh={refreshAddress}
+                /> */}
+                {/* <Text>{JSON.stringify(selectedAddress)}11</Text> */}
+                <FlatList
+                    data={addresses}
+                    keyExtractor={item => item.id.toString()}
+                    renderItem={renderAddress}
+                    scrollEnabled={false}
+                    ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+                    ListEmptyComponent={
+                        <Text style={{ textAlign: 'center', marginTop: 30 }}>
+                            No Address Found
+                        </Text>
+                    }
                 />
                 <AddressForm
                     onSuccess={handleAddressAdded}
-                />            </View>
+                />
+                {/* <Text>{JSON.stringify(selectedAddress)}</Text> */}
+                {/* <Text>{JSON.stringify(shippingAddress)}</Text> */}
+                <IsSameShipping
+                    value={isSameShippingAddress}
+                    onChange={toggleShippingAddress}
+                />
+                {/* <IsSameShipping value="isSameShippingAddress" onChange="toggleShippingAddress" /> */}
+            </View>
+
+
+
+            {!isSameShippingAddress && (
+                <View style={[styles.summary, {  marginBottom: 20 }]}>
+                    <>
+                        <Text style={styles.heading}>Shipping Address</Text>
+                        <FlatList
+                            data={addresses}
+                            keyExtractor={item => item.id.toString()}
+                            renderItem={renderShippingAddress}
+                            scrollEnabled={false}
+                            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+                            ListEmptyComponent={
+                                <Text style={{ textAlign: 'center', marginTop: 30 }}>
+                                    No Address Found
+                                </Text>
+                            }
+                        />
+
+                        <AddressForm
+                            onSuccess={handleAddressAdded}
+                        />
+                    </>
+                </View>
+            )}
+            {/* <IsSameShipping value="isSameShippingAddress" onChange="toggleShippingAddress" /> */}
+            <View style={{ paddingHorizontal: 50, marginBottom: 20 }}>
+                <TouchableOpacity
+                    disabled={!selectedAddress}
+                    style={{
+                        backgroundColor: selectedAddress ? '#0C3F80' : '#BDBDBD',
+                        padding: 15,
+                        borderRadius: 20,
+                        opacity: selectedAddress ? 1 : 0.6,
+                    }}
+                    onPress={() => {
+                        // Proceed action
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: '#fff',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Proceed
+                    </Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 
@@ -177,6 +411,8 @@ const Checkout = ({ navigation }) => {
                     }
                     ListFooterComponent={renderFooter}
                 />
+
+
             </SafeAreaView>
         </>
     );
@@ -278,5 +514,115 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         color: '#000',
+    },
+
+
+
+
+
+
+
+
+
+
+
+    // ===============================
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E5E5E5',
+        padding: 15,
+    },
+
+    selectedCard: {
+        borderColor: '#0C3F80',
+        borderWidth: 2,
+    },
+
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    left: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+
+    name: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#222',
+    },
+
+    company: {
+        color: '#777',
+        marginTop: 3,
+    },
+
+    badge: {
+        backgroundColor: '#E7F6EC',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 20,
+    },
+
+    badgeText: {
+        color: '#2E7D32',
+        fontWeight: '700',
+        fontSize: 12,
+    },
+
+    addressRow: {
+        flexDirection: 'row',
+        marginTop: 15,
+    },
+
+    address: {
+        marginLeft: 10,
+        flex: 1,
+        color: '#555',
+        lineHeight: 22,
+    },
+
+    phoneRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+
+    phone: {
+        marginLeft: 10,
+        color: '#555',
+    },
+
+    actionRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#EEE',
+        paddingTop: 12,
+    },
+
+    action: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 25,
+    },
+
+    edit: {
+        marginLeft: 5,
+        color: '#0C3F80',
+        fontWeight: '600',
+    },
+
+    delete: {
+        marginLeft: 5,
+        color: '#e53935',
+        fontWeight: '600',
     },
 });

@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   FlatList,
-  RefreshControl
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "../../component/Header"
@@ -16,7 +17,7 @@ import Products from "../../component/Products"
 import Search from "../../component/Search"
 import axios from "../../services/axios"
 import { useRoute } from '@react-navigation/native';
-
+import HomeSkeletonLoader from "../../component/HomeSkeletonLoader"
 const PRIMARY = '#2563EB';
 
 const Home = ({ navigation }) => {
@@ -26,6 +27,7 @@ const Home = ({ navigation }) => {
   const [categoriesList, setCategoriesList] = useState([]);
   const [productCarousels, setProductCarousels] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const route = useRoute();
 
@@ -37,25 +39,25 @@ const Home = ({ navigation }) => {
       const carousel = response.data.data.find(
         item => item.type === 'image_carousel'
       );
-      setSliderData(carousel?.options?.images);
+
+      setSliderData(carousel?.options?.images ?? []);
 
       const categoryFilters = response.data.data.find(
-        item => item.type === "category_carousel"
+        item => item.type === 'category_carousel'
       );
 
       const productCaros = response.data.data.filter(
-        item => item.type === "product_carousel"
+        item => item.type === 'product_carousel'
       );
 
       setProductCarousels(productCaros);
 
       const filters = categoryFilters?.options?.filters;
 
-      // setCategoryFilter(filters);
+      if (filters) {
+        await fetchCategory(filters);
+      }
 
-      fetchCategory(filters);
-
-      // setSliderData(response.data); // Update according to your API response
     } catch (error) {
       console.error(
         error.response?.data || error.message
@@ -105,7 +107,17 @@ const Home = ({ navigation }) => {
   };
 
   useEffect(() => {
-    fetchSliders();
+    const loadHome = async () => {
+      setLoading(true);
+
+      try {
+        await fetchSliders();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHome();
   }, []);
 
 
@@ -113,14 +125,21 @@ const Home = ({ navigation }) => {
     setRefreshing(true);
 
     try {
+      // setLoading(true);
       await fetchSliders();
     } catch (error) {
       console.log('Refresh error:', error);
     } finally {
       setRefreshing(false);
+      // setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+        <HomeSkeletonLoader/>
+    );
+}
 
   return (
     <View style={styles.container}>
@@ -132,11 +151,11 @@ const Home = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
         refreshControl={
-        <RefreshControl
+          <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-        />
-    }
+          />
+        }
       >
         <Slider sliderData={sliderData} />
         <Search />

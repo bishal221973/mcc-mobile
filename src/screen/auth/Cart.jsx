@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -8,6 +8,7 @@ import {
     FlatList,
     SafeAreaView,
     Alert,
+    RefreshControl
 } from 'react-native';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,38 +16,61 @@ import Toast from 'react-native-toast-message';
 import CartService from "../../services/cart"
 import axios from "../../services/axios"
 import { useFocusEffect } from '@react-navigation/native';
+import CartSkeleton from '../../component/Loading/CartSkeleton';
 const Cart = ({ navigation }) => {
 
     const [carts, setCarts] = useState([]);
     const [cartData, setCartData] = useState([]);
-    const loadCart = async () => {
+    const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    const loadCart = async (showLoading = false) => {
+        if (showLoading) {
+            setLoading(true);
+        }
+
         const token = await AsyncStorage.getItem('token');
 
-        if (token) {
-            try {
+        try {
+            if (token) {
                 const cart = await CartService.getServerCart();
-                setCarts(cart?.items);
-                setCartData(cart);
-            } catch (e) {
-                console.log(e);
-            }
-        } else {
-            try {
+
+                setCarts(cart?.items || []);
+                setCartData(cart || {});
+            } else {
                 const cart = await CartService.getLocalCart();
-                // setCarts(cart);
-            } catch (e) {
-                console.log(e);
+
+                setCarts(cart || []);
             }
+        } catch (error) {
+            console.log('Cart error:', error);
+        } finally {
+            if (showLoading) {
+                setLoading(false);
+            }
+        }
+    };
+    const firstLoad = useRef(true);
+    const onRefresh = async () => {
+        setRefreshing(true);
+
+        try {
+            await loadCart(false);
+        } catch (error) {
+            console.log('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
         }
     };
 
     useFocusEffect(
         React.useCallback(() => {
-            loadCart();
-
-            return () => {
-                // Optional cleanup when leaving the screen
-            };
+            if (firstLoad.current) {
+                firstLoad.current = false;
+                loadCart(true);
+            } else {
+                loadCart(false);
+            }
         }, [])
     );
 
@@ -147,46 +171,79 @@ const Cart = ({ navigation }) => {
             <Header />
             <SafeAreaView style={styles.container}>
                 {/* <Text>{JSON.stringify(cartData?.formatted_sub_total)}</Text> */}
-                <FlatList
+                {/* <FlatList
                     data={carts}
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     showsVerticalScrollIndicator={false}
-                />
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#0C3F80']}
+                            tintColor="#0C3F80"
+                        />
+                    }
+                /> */}
 
-                {carts && (
+                {loading ? (
+                    <CartSkeleton />
+                ) : (
+                    <>
+                        <FlatList
+                            data={carts}
+                            renderItem={renderItem}
+                            keyExtractor={item => item.id.toString()}
+                            showsVerticalScrollIndicator={false}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={refreshing}
+                                    onRefresh={onRefresh}
+                                    colors={['#0C3F80']}
+                                    tintColor="#0C3F80"
+                                />
+                            }
+                            contentContainerStyle={
+                                carts.length === 0
+                                    ? { flexGrow: 1 }
+                                    : undefined
+                            }
+                        />
+                        {carts.length > 0 && (
 
-                <View style={styles.summary}>
-                    <Text style={styles.summaryTitle}>Order Summary</Text>
+                            <View style={styles.summary}>
+                                <Text style={styles.summaryTitle}>Order Summary</Text>
 
-                    <View style={styles.row}>
-                        <Text>Subtotal</Text>
-                        <Text>{cartData?.formatted_sub_total}</Text>
-                    </View>
+                                <View style={styles.row}>
+                                    <Text>Subtotal</Text>
+                                    <Text>{cartData?.formatted_sub_total}</Text>
+                                </View>
 
-                    <View style={styles.row}>
-                        <Text>TAX</Text>
-                        <Text>{cartData?.formatted_tax_total}</Text>
-                    </View>
+                                <View style={styles.row}>
+                                    <Text>TAX</Text>
+                                    <Text>{cartData?.formatted_tax_total}</Text>
+                                </View>
 
-                    <View style={styles.divider} />
+                                <View style={styles.divider} />
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <View>
-                            <Text style={styles.totalText}>{cartData?.formatted_base_grand_total}</Text>
-                            <Text style={{ fontSize: 12, color: '#999' }}>Total amount to be paid</Text>
-                        </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View>
+                                        <Text style={styles.totalText}>{cartData?.formatted_base_grand_total}</Text>
+                                        <Text style={{ fontSize: 12, color: '#999' }}>Total amount to be paid</Text>
+                                    </View>
 
-                        <TouchableOpacity
-                            style={styles.checkoutButton}
-                            onPress={() => navigation.navigate('Checkout')}
-                        >
-                            <Text style={styles.checkoutText}>
-                                Proceed
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                                    <TouchableOpacity
+                                        style={styles.checkoutButton}
+                                        onPress={() => navigation.navigate('Checkout')}
+                                    >
+                                        <Text style={styles.checkoutText}>
+                                            Proceed
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+                    </>
                 )}
             </SafeAreaView>
         </>

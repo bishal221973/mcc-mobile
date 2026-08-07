@@ -9,12 +9,13 @@ import {
   FlatList,
   Image,
   ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
 import axios from '../../services/axios';
 import { useNavigation } from '@react-navigation/native';
-
+import CategorySkeleton from "../../component/Loading/CategorySkeleton"
 const PRIMARY = '#0C3F80';
 
 const Category = () => {
@@ -24,13 +25,14 @@ const Category = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const fetchCategory = async () => {
     try {
-      setLoading(true);
 
-      const res = await axios.get("/categories",{
-        params:{
-          limit:50
+      const res = await axios.get("/categories", {
+        params: {
+          limit: 50
         }
       });
 
@@ -42,13 +44,23 @@ const Category = () => {
     } catch (err) {
       console.log(err);
     } finally {
-      setLoading(false);
     }
   };
 
 
+  const loadCategory = async () => {
+    try {
+      setLoading(true);
+      await fetchCategory();
+    } catch (error) {
+      console.log('Category error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchCategory();
+    loadCategory();
   }, []);
 
   const filteredCategories = categories.filter(item =>
@@ -86,6 +98,18 @@ const Category = () => {
     </TouchableOpacity>
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      await fetchCategory();
+    } catch (error) {
+      console.log('Refresh error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -108,30 +132,7 @@ const Category = () => {
           />
         </View>
 
-        {/* Categories */}
-        {/* <FlatList
-          data={filteredCategories}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderCategory}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ListEmptyComponent={() => (
-            <View style={styles.empty}>
-              <Ionicons
-                name="folder-open-outline"
-                size={60}
-                color="#D1D5DB"
-              />
 
-              <Text style={styles.emptyTitle}>
-                No Categories Found
-              </Text>
-            </View>
-          )}
-        />
-         */}
         <FlatList
           data={filteredCategories}
           renderItem={renderCategory}
@@ -140,9 +141,18 @@ const Category = () => {
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[PRIMARY]}
+              tintColor={PRIMARY}
+            />
+          }
+
           ListFooterComponent={
             loading ? (
-              <ActivityIndicator size="large" color={PRIMARY} />
+              <CategorySkeleton />
             ) : null
           }
         />
@@ -203,7 +213,7 @@ const styles = StyleSheet.create({
     height: 90,
     resizeMode: 'contain',
     marginBottom: 12,
-    borderRadius:50
+    borderRadius: 50
   },
 
   placeholder: {

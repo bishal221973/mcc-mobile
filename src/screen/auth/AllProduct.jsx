@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image } from 'react-native'
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import axios from "../../services/axios"
 import Header from '../../component/Header'
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import ProductSkelton from "../../component/Loading/ProductSkeleton"
 const PRIMARY = '#0C3F80';
 
 // FIX: Destructured navigation from props
@@ -12,6 +12,8 @@ const AllProduct = ({ route, navigation }) => {
     const { categoryId } = route.params;
     const [products, setProducts] = useState([]);
     const [category, setCategory] = useState();
+    const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const fetchProducts = async () => {
         try {
@@ -40,10 +42,51 @@ const AllProduct = ({ route, navigation }) => {
     };
 
     // FIX: Added dependency array to stop the infinite render loop
+    // useEffect(() => {
+    //     try {
+    //         setLoading(true);
+    //         fetchProducts();
+    //         fetchCategory();
+    //     } catch (error) {
+
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [categoryId])
+
+    const loadInitialData = async () => {
+        try {
+            setLoading(true);
+
+            await Promise.all([
+                fetchProducts(),
+                fetchCategory(),
+            ]);
+        } catch (error) {
+            console.log('Initial loading error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetchProducts();
-        fetchCategory();
-    }, [categoryId])
+        loadInitialData();
+    }, [categoryId]);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+
+        try {
+            await Promise.all([
+                fetchProducts(),
+                fetchCategory(),
+            ]);
+        } catch (error) {
+            console.log('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     const renderProduct = ({ item }) => (
         <TouchableOpacity
@@ -82,21 +125,64 @@ const AllProduct = ({ route, navigation }) => {
         // FIX: Added flex: 1 to parent container so FlatList scrolls properly
         <View style={{ flex: 1 }}>
             <Header />
-            <View style={{ backgroundColor: '#fff', padding: 10,marginBottom:10 }}>
-                <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{category?.[0]?.name}</Text>
-            </View>
-            <FlatList
-                data={products}
-                renderItem={renderProduct}
-                numColumns={2}
-                keyExtractor={(item) => item.id.toString()} // Ensure key is a string
-                showsVerticalScrollIndicator={false} // Changed to vertical since it is a 2-column grid
-                contentContainerStyle={styles.list}
-                columnWrapperStyle={{
-                    justifyContent: 'space-between',
+            <View style={{ backgroundColor: '#fff', padding: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between',alignItems:'center' }}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons
+                        name="chevron-back"
+                        size={20}
+                        color="#0C3F80"
+                    />
 
-                }}
-            />
+                    <Text style={styles.backText}>
+                        Back
+                    </Text>
+                </TouchableOpacity>
+                {loading ? (
+                    <View style={styles.categorySkeleton} />
+                ) : (
+                    <Text style={{fontWeight:'bold'}}>
+                        {category?.[0]?.name || 'Category'}
+                    </Text>
+                )}
+                {/* <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{category?.[0]?.name}</Text> */}
+            </View>
+            {loading ? (
+                <FlatList
+                    data={Array.from({ length: 6 })}
+                    numColumns={2}
+                    keyExtractor={(_, index) => `skeleton-${index}`}
+                    renderItem={() => <ProductSkelton />}
+                    contentContainerStyle={styles.list}
+                    columnWrapperStyle={{
+                        justifyContent: 'space-between',
+                    }}
+                    showsVerticalScrollIndicator={false}
+                />
+            ) : (
+                <FlatList
+                    data={products}
+                    renderItem={renderProduct}
+                    numColumns={2}
+                    keyExtractor={(item) => item.id.toString()}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.list}
+                    columnWrapperStyle={{
+                        justifyContent: 'space-between',
+                    }}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[PRIMARY]}
+                            tintColor={PRIMARY}
+                        />
+                    }
+                />
+            )}
         </View>
     )
 }
@@ -184,5 +270,27 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginLeft: 6,
         fontWeight: '700',
+    },
+    categorySkeleton: {
+        width: 140,
+        height: 24,
+        borderRadius: 7,
+        backgroundColor: '#E5E7EB',
+    },
+    backButton: {
+        height: 42,
+        paddingHorizontal: 14,
+        borderRadius: 14,
+        backgroundColor: '#F1F5FA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    backText: {
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0C3F80',
     },
 });

@@ -5,7 +5,8 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  FlatList
+  FlatList,
+  RefreshControl
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "../../component/Header"
@@ -24,6 +25,7 @@ const Home = ({ navigation }) => {
   // const [categoryFilter, setCategoryFilter] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [productCarousels, setProductCarousels] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const route = useRoute();
 
@@ -106,7 +108,19 @@ const Home = ({ navigation }) => {
     fetchSliders();
   }, []);
 
-  
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      await fetchSliders();
+    } catch (error) {
+      console.log('Refresh error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -117,6 +131,12 @@ const Home = ({ navigation }) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        refreshControl={
+        <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+        />
+    }
       >
         <Slider sliderData={sliderData} />
         <Search />

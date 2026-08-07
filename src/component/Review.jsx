@@ -5,29 +5,27 @@ import axios from "../services/axios"
 import WriteReview from "./WriteReview"
 const Review = ({ product }) => {
 
-    const dummyReviews = [
-        {
-            id: 1,
-            name: 'Ramesh K.',
-            rating: 5,
-            date: '2 days ago',
-            comment:
-                'Excellent bonding strength. Used it for large format porcelain tiles and it holds perfectly.',
-        },
-        {
-            id: 2,
-            name: 'Sita T.',
-            rating: 4,
-            date: '1 week ago',
-            comment:
-                'Very good workability and setting time. Highly recommend for bathroom walls.',
-        },
-    ];
-    const ratingPercentage = JSON.parse(
-        product?.reviews?.percentage || "{}"
-    );
+    const reviewsData = product?.reviews || {};
 
-    const totalReviews = product?.reviews?.total || 0;
+    const averageRating = Number(reviewsData.average_rating || 0);
+    const totalReviews = Number(reviewsData.total || 0);
+    const totalRating = Number(reviewsData.total_rating || 5);
+
+    let ratingPercentage = {};
+
+    try {
+        ratingPercentage =
+            typeof reviewsData.percentage === 'string'
+                ? JSON.parse(reviewsData.percentage || '{}')
+                : reviewsData.percentage || {};
+    } catch (error) {
+        ratingPercentage = {};
+    }
+    // const ratingPercentage = JSON.parse(
+    //     product?.reviews?.percentage || "{}"
+    // );
+
+    // const totalReviews = product?.reviews?.total || 0;
 
     const [reviews, setReviews] = useState([]);
 
@@ -66,42 +64,42 @@ const Review = ({ product }) => {
 
     const timeAgo = (date) => {
 
-    const now = new Date();
-    const createdDate = new Date(date);
+        const now = new Date();
+        const createdDate = new Date(date);
 
-    const seconds = Math.floor(
-        (now - createdDate) / 1000
-    );
-
-
-    const intervals = {
-        year: 31536000,
-        month: 2592000,
-        week: 604800,
-        day: 86400,
-        hour: 3600,
-        minute: 60,
-    };
-
-
-    for (const interval in intervals) {
-
-        const value = Math.floor(
-            seconds / intervals[interval]
+        const seconds = Math.floor(
+            (now - createdDate) / 1000
         );
 
-        if (value >= 1) {
 
-            return `${value} ${interval}${value > 1 ? 's' : ''} ago`;
+        const intervals = {
+            year: 31536000,
+            month: 2592000,
+            week: 604800,
+            day: 86400,
+            hour: 3600,
+            minute: 60,
+        };
+
+
+        for (const interval in intervals) {
+
+            const value = Math.floor(
+                seconds / intervals[interval]
+            );
+
+            if (value >= 1) {
+
+                return `${value} ${interval}${value > 1 ? 's' : ''} ago`;
+
+            }
 
         }
 
-    }
 
+        return "Just now";
 
-    return "Just now";
-
-};
+    };
     return (
 
         <View style={styles.container}>
@@ -167,7 +165,7 @@ const Review = ({ product }) => {
 
                     </View>
 
-                    
+
 
 
                 </View>
@@ -177,8 +175,14 @@ const Review = ({ product }) => {
 
                             {[5, 4, 3, 2, 1].map((star) => {
 
+                                // const count = Math.round(
+                                //     (ratingPercentage[star] / 100) * totalReviews
+                                // );
+                                const percentage = Number(ratingPercentage?.[star] || 0);
+                                const total = Number(totalReviews || 0);
+
                                 const count = Math.round(
-                                    (ratingPercentage[star] / 100) * totalReviews
+                                    (percentage / 100) * total
                                 );
 
                                 return (
@@ -219,7 +223,7 @@ const Review = ({ product }) => {
 
 
                                         <Text>
-                                            {count} reviews
+                                            {count ?? 0} reviews
                                         </Text>
 
 
@@ -231,7 +235,7 @@ const Review = ({ product }) => {
                         </View>
                     </View>
                 </View>
-                <WriteReview/>
+                <WriteReview />
             </View>
 
 

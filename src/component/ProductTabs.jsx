@@ -9,7 +9,7 @@ const ProductTabs = ({ product }) => {
 
     const tabs = [
         { id: 'description', label: 'Description' },
-        { id: 'reviews', label: 'Reviews (14)' },
+        { id: 'reviews', label: 'Reviews' },
         { id: 'specs', label: 'Specifications' },
     ];
 
@@ -57,11 +57,7 @@ const ProductTabs = ({ product }) => {
 
     // 3. Render Reviews Tab Content
     const renderReviews = () => {
-        const dummyReviews = [
-            { id: 1, name: 'Ramesh K.', rating: 5, date: '2 days ago', comment: 'Excellent bonding strength. Used it for large format porcelain tiles and it holds perfectly.' },
-            { id: 2, name: 'Sita T.', rating: 4, date: '1 week ago', comment: 'Very good workability and setting time. Highly recommend for bathroom walls.' },
-        ];
-
+        
         return (
             <Review product={product}/>
            

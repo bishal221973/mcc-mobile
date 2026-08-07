@@ -7,6 +7,7 @@ import {
     SafeAreaView,
     ScrollView,
     Alert,
+    RefreshControl,
 } from 'react-native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,6 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CartService from "../../services/cart"
 import Toast from 'react-native-toast-message';
 import Header from '../../component/Header';
+import ProductInfoSkeleton from '../../component/Loading/ProductInfoSkeleton';
 const ProductShow = ({ route }) => {
 
     const { id } = route.params;
@@ -27,23 +29,22 @@ const ProductShow = ({ route }) => {
     const [quantity, setQuantity] = useState(1);
     const [isFavorite, setIsFavorite] = useState(false);
     const [product, setProduct] = useState(null);
-
+    const [refreshing, setRefreshing] = useState(false);
+    const [productLoading, setProductLoading] = useState(true);
 
     const fetchProduct = async () => {
         try {
+            setProductLoading(true);
 
             const response = await axios.get(`/products/${id}`);
 
-            console.log(response.data);
-
             setProduct(response.data.data);
-
         } catch (error) {
-
             console.log(
                 error.response?.data || error.message
             );
-
+        } finally {
+            setProductLoading(false);
         }
     };
 
@@ -64,16 +65,14 @@ const ProductShow = ({ route }) => {
 
         if (token) {
             const pId = product.id;
-            
+
             const resc = await CartService.addServerItem(
                 {
                     product_id: pId.toString(),
                 },
                 quantity
             );
-            console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++")
-            console.log(resc)
-            console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+
         } else {
             await CartService.addToLocalCart(
                 {
@@ -103,14 +102,24 @@ const ProductShow = ({ route }) => {
     if (!product) {
 
         return (
-            <View style={styles.loading}>
-                <Text>Loading...</Text>
-            </View>
+            <ProductInfoSkeleton />
         );
 
     }
 
+    const onRefresh = async () => {
+        setRefreshing(true);
 
+        try {
+            await fetchProduct();
+        } catch (error) {
+            console.log('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+ 
 
     return (
 
@@ -120,6 +129,14 @@ const ProductShow = ({ route }) => {
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={['#0C3F80']}
+                        tintColor="#0C3F80"
+                    />
+                }
             >
 
 
@@ -256,7 +273,7 @@ const ProductShow = ({ route }) => {
 
                 <ProductTabs product={product} />
 
-                <RelatedProducts />
+                {/* <RelatedProducts /> */}
 
 
             </ScrollView>

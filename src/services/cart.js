@@ -3,6 +3,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from "./axios"
 import { Alert } from 'react-native';
+
 const CART_KEY = 'cart';
 
 class CartService {
@@ -49,7 +50,7 @@ class CartService {
     // Fetch server cart
     async getServerCart() {
         try {
-            console.log("Callaed Live")
+        //    Alert.alert('called','caeedd')
              const token = await AsyncStorage.getItem('token');
              console.log(token)
             const res = await api.get('/customer/cart');
@@ -106,7 +107,6 @@ class CartService {
     // Sync local cart to server
     async syncCart() {
 
-        console.log("Called");
         const localCart = await this.getLocalCart();
 
         if (!localCart.length) return;
@@ -125,7 +125,7 @@ class CartService {
     // Get current cart
     async getCart() {
         const token = await AsyncStorage.getItem('token');
-
+        
         if (token) {
             return this.getServerCart();
         }

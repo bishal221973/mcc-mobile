@@ -7,58 +7,24 @@ import {
     TouchableOpacity,
     FlatList,
     SafeAreaView,
+    Alert,
 } from 'react-native';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import CartService from "../../services/cart"
 import axios from "../../services/axios"
+import { useFocusEffect } from '@react-navigation/native';
 const Cart = ({ navigation }) => {
-    const [cartItems, setCartItems] = useState([
-        {
-            id: '1',
-            name: 'Apple iPhone 15 Pro',
-            variant: '256GB • Black Titanium',
-            price: 1799,
-            qty: 1,
-            image: require('../../../assets/products/1.webp'),
-        },
-        {
-            id: '2',
-            name: 'Nike Air Max',
-            variant: 'Size 42 • White',
-            price: 249,
-            qty: 2,
-            image: require('../../../assets/products/2.webp'),
-        },
-        {
-            id: '3',
-            name: 'Nike Air Max',
-            variant: 'Size 42 • White',
-            price: 249,
-            qty: 2,
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: '4',
-            name: 'Nike Air Max',
-            variant: 'Size 42 • White',
-            price: 249,
-            qty: 2,
-            image: require('../../../assets/products/1.webp'),
-        },
-    ]);
 
     const [carts, setCarts] = useState([]);
     const [cartData, setCartData] = useState([]);
     const loadCart = async () => {
         const token = await AsyncStorage.getItem('token');
 
-
         if (token) {
             try {
                 const cart = await CartService.getServerCart();
-
                 setCarts(cart?.items);
                 setCartData(cart);
             } catch (e) {
@@ -66,19 +32,23 @@ const Cart = ({ navigation }) => {
             }
         } else {
             try {
-
-
                 const cart = await CartService.getLocalCart();
-                setCarts(cart);
+                // setCarts(cart);
             } catch (e) {
                 console.log(e);
             }
         }
     };
 
-    useEffect(() => {
-        loadCart();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            loadCart();
+
+            return () => {
+                // Optional cleanup when leaving the screen
+            };
+        }, [])
+    );
 
 
 
@@ -114,17 +84,9 @@ const Cart = ({ navigation }) => {
         }
     };
 
-    const removeItem = id => {
-        setCartItems(items => items.filter(item => item.id !== id));
-    };
 
-    const subtotal = cartItems.reduce(
-        (sum, item) => sum + item.price * item.qty,
-        0,
-    );
 
-    const shipping = subtotal > 0 ? 20 : 0;
-    const total = subtotal + shipping;
+
 
 
     useEffect(() => {
@@ -192,7 +154,8 @@ const Cart = ({ navigation }) => {
                     showsVerticalScrollIndicator={false}
                 />
 
-                
+                {carts && (
+
                 <View style={styles.summary}>
                     <Text style={styles.summaryTitle}>Order Summary</Text>
 
@@ -224,6 +187,7 @@ const Cart = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
+                )}
             </SafeAreaView>
         </>
     );

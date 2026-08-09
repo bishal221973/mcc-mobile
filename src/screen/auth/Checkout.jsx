@@ -679,7 +679,9 @@ const Checkout = ({ navigation }) => {
                                 style={styles.viewOrderButton}
                                 onPress={() => {
                                     setOrderSuccess(false);
-                                    navigation.navigate('Order');
+                                    navigation.replace('OrderShow',{
+                                        order:placedOrder
+                                    });
                                 }}
                             >
                                 <Text style={styles.viewOrderButtonText}>

@@ -11,6 +11,7 @@ import ProductShow from "../screen/auth/ProductShow"
 import FilteredProducts from "../screen/auth/FilteredProducts"
 import AllProduct from "../screen/auth/AllProduct"
 import Checkout from "../screen/auth/Checkout"
+import OrderShow from "../screen/auth/OrderShow"
 const Stack = createNativeStackNavigator();
 
 
@@ -26,6 +27,7 @@ const StackNavigation = () => {
 
        <Stack.Screen name="Drawer" component={DrawerNavigation} />
        <Stack.Screen name="ProductShow" component={ProductShow} />
+       <Stack.Screen name="OrderShow" component={OrderShow} />
        <Stack.Screen name="FilteredProducts" component={FilteredProducts} />
        <Stack.Screen name="AllProduct" component={AllProduct} />
        <Stack.Screen name="Checkout" component={Checkout} />

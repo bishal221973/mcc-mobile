@@ -7,7 +7,10 @@ import {
     TouchableOpacity,
     FlatList,
     SafeAreaView,
-    Alert
+    Alert,
+    RefreshControl,
+    ActivityIndicator,
+    Modal
 } from 'react-native';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,6 +25,8 @@ import ProductPrice from "../../component/Checkout/ProductPrice"
 import Address from "../../component/Checkout/Address"
 import ShippingMethod from "../../component/Checkout/ShippingMethod"
 import Payment from "../../component/Checkout/Payment"
+import CheckoutSkeleton from '../../component/Loading/CheckoutSkeleton';
+
 const esewaIcon = require('../../../assets/images/esewa.png');
 const codIcon = require('../../../assets/images/cod.png');
 const creditIcon = require('../../../assets/images/credit.png');
@@ -36,6 +41,7 @@ const Checkout = ({ navigation }) => {
     const [shippingAddress, setShippingAddress] = useState(null);
     const [addresses, setAddresses] = useState([]);
     const [shippingPrice, setShippingPrice] = useState({ amount: 0 })
+    const [refreshing, setRefreshing] = useState(false);
 
     const toggleShippingAddress = (checked) => {
         setIsSameShippingAddress(checked);
@@ -72,9 +78,7 @@ const Checkout = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        fetchAddress();
-    }, []);
+
 
     const renderAddress = ({ item }) => {
         const selected = selectedAddress?.id === item.id;
@@ -115,9 +119,7 @@ const Checkout = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        loadCart();
-    }, []);
+
 
 
     useEffect(() => {
@@ -227,9 +229,7 @@ const Checkout = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        fetchConfig();
-    }, []);
+
 
     const selectShippingMethod = method => {
         setSelectedShippingMethod(method);
@@ -311,12 +311,143 @@ const Checkout = ({ navigation }) => {
         <Payment selectPaymentMethod={selectPaymentMethod} key={item.id} item={item} selectedPayment={selectedPayment} />
     );
 
+    // const saveAddress = async () => {
+    //     try {
+    //         if (!selectedAddress || !shippingAddress) {
+    //             Alert.alert('Error', 'Please select address');
+    //             return;
+    //         }
+
+    //         const addressPayload = {
+    //             shipping: {
+    //                 address: shippingAddress.address,
+    //                 save_as_address: false,
+    //                 first_name: shippingAddress.first_name,
+    //                 last_name: shippingAddress.last_name,
+    //                 email: shippingAddress.email,
+    //                 company_name: shippingAddress.company_name,
+    //                 city: shippingAddress.city,
+    //                 state: shippingAddress.state,
+    //                 country: shippingAddress.country,
+    //                 postcode: shippingAddress.postcode,
+    //                 phone: shippingAddress.phone,
+    //                 vat_id: shippingAddress.vat_id,
+    //             },
+
+    //             billing: {
+    //                 address: selectedAddress.address,
+    //                 save_as_address: false,
+    //                 first_name: selectedAddress.first_name,
+    //                 last_name: selectedAddress.last_name,
+    //                 email: selectedAddress.email,
+    //                 company_name: selectedAddress.company_name,
+    //                 city: selectedAddress.city,
+    //                 state: selectedAddress.state,
+    //                 country: selectedAddress.country,
+    //                 postcode: selectedAddress.postcode,
+    //                 phone: selectedAddress.phone,
+    //                 vat_id: selectedAddress.vat_id,
+    //             },
+
+    //             shipping_method: selectedShippingMethod,
+
+    //             payment: {
+    //                 method: selectedPayment,
+    //             },
+    //         };
+
+    //         console.time('PLACE ORDER');
+
+    //         // 1. Save address
+    //         console.time('save-address');
+
+    //         const addressResponse = await axios.post(
+    //             '/customer/checkout/save-address',
+    //             addressPayload
+    //         );
+
+    //         console.timeEnd('save-address');
+
+    //         // 2. Save shipping
+    //         console.time('save-shipping');
+
+    //         const shippingResponse = await axios.post(
+    //             '/customer/checkout/save-shipping',
+    //             {
+    //                 shipping_method: selectedShippingMethod
+    //                     ? 'free_free'
+    //                     : 'flatrate_flatrate',
+    //             }
+    //         );
+
+    //         console.timeEnd('save-shipping');
+
+    //         // 3. Save payment
+    //         console.time('save-payment');
+
+    //         const paymentResponse = await axios.post(
+    //             '/customer/checkout/save-payment',
+    //             {
+    //                 payment: {
+    //                     method: selectedPayment,
+    //                 },
+    //             }
+    //         );
+
+    //         console.timeEnd('save-payment');
+
+    //         // 4. Place order
+    //         console.time('save-order');
+
+    //         const orderResponse = await axios.post(
+    //             '/customer/checkout/save-order'
+    //         );
+
+    //         console.timeEnd('save-order');
+
+    //         console.timeEnd('PLACE ORDER');
+
+    //         console.log('Order:', orderResponse.data);
+
+    //         Alert.alert(
+    //             'Success',
+    //             'Order placed successfully',
+    //             [
+    //                 {
+    //                     text: 'OK',
+    //                     onPress: () => navigation.navigate('Order'),
+    //                 },
+    //             ]
+    //         );
+
+    //     } catch (error) {
+    //         console.error(
+    //             'Order error:',
+    //             error.response?.data || error.message
+    //         );
+
+    //         Alert.alert(
+    //             'Error',
+    //             error.response?.data?.message ||
+    //             'Unable to place order. Please try again.'
+    //         );
+    //     }
+    // }
+
+    const [placingOrder, setPlacingOrder] = useState(false);
+    const [orderSuccess, setOrderSuccess] = useState(false);
+    const [placedOrder, setPlacedOrder] = useState(null);
+
     const saveAddress = async () => {
+        if (placingOrder) return;
+
         try {
             if (!selectedAddress || !shippingAddress) {
                 Alert.alert('Error', 'Please select address');
                 return;
             }
+
+            setPlacingOrder(true);
 
             const addressPayload = {
                 shipping: {
@@ -361,7 +492,7 @@ const Checkout = ({ navigation }) => {
             // 1. Save address
             console.time('save-address');
 
-            const addressResponse = await axios.post(
+            await axios.post(
                 '/customer/checkout/save-address',
                 addressPayload
             );
@@ -371,7 +502,7 @@ const Checkout = ({ navigation }) => {
             // 2. Save shipping
             console.time('save-shipping');
 
-            const shippingResponse = await axios.post(
+            await axios.post(
                 '/customer/checkout/save-shipping',
                 {
                     shipping_method: selectedShippingMethod
@@ -385,7 +516,7 @@ const Checkout = ({ navigation }) => {
             // 3. Save payment
             console.time('save-payment');
 
-            const paymentResponse = await axios.post(
+            await axios.post(
                 '/customer/checkout/save-payment',
                 {
                     payment: {
@@ -404,21 +535,16 @@ const Checkout = ({ navigation }) => {
             );
 
             console.timeEnd('save-order');
-
             console.timeEnd('PLACE ORDER');
 
             console.log('Order:', orderResponse.data);
 
-            Alert.alert(
-                'Success',
-                'Order placed successfully',
-                [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation.navigate('Order'),
-                    },
-                ]
-            );
+            // Store order response
+            setPlacedOrder(orderResponse.data);
+
+            // Hide loading and show success modal
+            setPlacingOrder(false);
+            setOrderSuccess(true);
 
         } catch (error) {
             console.error(
@@ -426,13 +552,15 @@ const Checkout = ({ navigation }) => {
                 error.response?.data || error.message
             );
 
+            setPlacingOrder(false);
+
             Alert.alert(
-                'Error',
+                'Order Failed',
                 error.response?.data?.message ||
                 'Unable to place order. Please try again.'
             );
         }
-    }
+    };
 
     const saveAddress1 = async () => {
         try {
@@ -539,6 +667,22 @@ const Checkout = ({ navigation }) => {
 
         Alert.alert('Success', 'Order placed successfully');
     }
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+
+        try {
+            await Promise.all([
+                loadCart(),
+                fetchAddress(),
+                fetchConfig(),
+            ]);
+        } catch (error) {
+            console.log('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     const renderFooter = () => (
         <View style={{ elevation: 10 }}>
@@ -655,25 +799,140 @@ const Checkout = ({ navigation }) => {
         </View>
     );
 
+    const [loading, setLoading] = useState(true);
+    // useEffect(() => {
+    //     loadCart();
+    //     fetchAddress();
+    //     fetchConfig();
+    // }, []);
+
+    useEffect(() => {
+        const loadCheckout = async () => {
+            setLoading(true);
+
+            try {
+                await Promise.all([
+                    loadCart(),
+                    fetchAddress(),
+                    fetchConfig(),
+                ]);
+            } catch (error) {
+                console.log('Checkout loading error:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCheckout();
+    }, []);
+
+
 
     return (
         <>
             <Header />
             <SafeAreaView style={styles.container}>
-                <FlatList
+                {loading ? (<CheckoutSkeleton />) : (<FlatList
                     data={carts}
                     renderItem={renderItem}
                     keyExtractor={item => item.id.toString()}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#0C3F80']}
+                            tintColor="#0C3F80"
+                        />
+                    }
                     ListHeaderComponent={
                         <View style={{ padding: 15 }}>
                             <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Cart Summary</Text>
                         </View>
                     }
                     ListFooterComponent={renderFooter}
-                />
+                />)}
 
+                {placingOrder && (
+                    <View style={styles.loadingOverlay}>
+                        <View style={styles.loadingBox}>
+                            <ActivityIndicator
+                                size="large"
+                                color="#0C3F80"
+                            />
 
+                            <Text style={styles.loadingTitle}>
+                                Placing your order
+                            </Text>
+
+                            <Text style={styles.loadingText}>
+                                Please wait while we process your order...
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                <Modal
+                    visible={orderSuccess}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => { }}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.successModal}>
+
+                            {/* Success Icon */}
+                            <View style={styles.successIcon}>
+                                <Ionicons
+                                    name="checkmark"
+                                    size={42}
+                                    color="#fff"
+                                />
+                            </View>
+
+                            <Text style={styles.successTitle}>
+                                Order Placed!
+                            </Text>
+
+                            <Text style={styles.successMessage}>
+                                Your order has been placed successfully.
+                            </Text>
+
+                            {placedOrder?.data?.increment_id && (
+                                <Text style={styles.orderNumber}>
+                                    Order #{placedOrder.data.increment_id}
+                                </Text>
+                            )}
+
+                            {/* Continue Shopping */}
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => {
+                                    setOrderSuccess(false);
+                                    navigation.navigate('Home');
+                                }}
+                            >
+                                <Text style={styles.continueButtonText}>
+                                    Continue Shopping
+                                </Text>
+                            </TouchableOpacity>
+
+                            {/* View Order */}
+                            <TouchableOpacity
+                                style={styles.viewOrderButton}
+                                onPress={() => {
+                                    setOrderSuccess(false);
+                                    navigation.navigate('Order');
+                                }}
+                            >
+                                <Text style={styles.viewOrderButtonText}>
+                                    View Order
+                                </Text>
+                            </TouchableOpacity>
+
+                        </View>
+                    </View>
+                </Modal>
             </SafeAreaView>
         </>
     );
@@ -800,5 +1059,130 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#222',
         marginBottom: 15,
+    },
+
+
+
+
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
+    },
+
+    loadingBox: {
+        width: '82%',
+        backgroundColor: '#fff',
+        borderRadius: 18,
+        paddingVertical: 30,
+        paddingHorizontal: 25,
+        alignItems: 'center',
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+    },
+
+    loadingTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#222',
+        marginTop: 18,
+    },
+
+    loadingText: {
+        fontSize: 14,
+        color: '#777',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 25,
+    },
+
+    successModal: {
+        width: '100%',
+        backgroundColor: '#fff',
+        borderRadius: 22,
+        padding: 25,
+        alignItems: 'center',
+        elevation: 15,
+    },
+
+    successIcon: {
+        width: 75,
+        height: 75,
+        borderRadius: 40,
+        backgroundColor: '#2E7D32',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 18,
+    },
+
+    successTitle: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#222',
+    },
+
+    successMessage: {
+        fontSize: 14,
+        color: '#777',
+        textAlign: 'center',
+        marginTop: 8,
+        lineHeight: 21,
+    },
+
+    orderNumber: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0C3F80',
+        marginTop: 15,
+    },
+
+    continueButton: {
+        width: '100%',
+        backgroundColor: '#0C3F80',
+        paddingVertical: 14,
+        borderRadius: 12,
+        marginTop: 25,
+    },
+
+    continueButtonText: {
+        color: '#fff',
+        textAlign: 'center',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+
+    viewOrderButton: {
+        width: '100%',
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#0C3F80',
+        marginTop: 10,
+    },
+
+    viewOrderButtonText: {
+        color: '#0C3F80',
+        textAlign: 'center',
+        fontSize: 15,
+        fontWeight: '700',
     },
 });

@@ -17,6 +17,7 @@ import CartService from "../../services/cart"
 import axios from "../../services/axios"
 import { useFocusEffect } from '@react-navigation/native';
 import CartSkeleton from '../../component/Loading/CartSkeleton';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 const Cart = ({ navigation }) => {
 
     const [carts, setCarts] = useState([]);
@@ -188,6 +189,39 @@ const Cart = ({ navigation }) => {
 
                 {loading ? (
                     <CartSkeleton />
+                ) : carts.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <View style={styles.emptyIcon}>
+                            <Ionicons
+                                name="cart-outline"
+                                size={55}
+                                color="#0C3F80"
+                            />
+                        </View>
+
+                        <Text style={styles.emptyTitle}>
+                            Your Cart is Empty
+                        </Text>
+
+                        <Text style={styles.emptyText}>
+                            Looks like you haven't added anything to your cart yet.
+                        </Text>
+
+                        <TouchableOpacity
+                            style={styles.shopButton}
+                            onPress={() => navigation.navigate('Home')}
+                        >
+                            <Ionicons
+                                name="bag-outline"
+                                size={20}
+                                color="#fff"
+                            />
+
+                            <Text style={styles.shopButtonText}>
+                                Continue Shopping
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     <>
                         <FlatList
@@ -203,46 +237,63 @@ const Cart = ({ navigation }) => {
                                     tintColor="#0C3F80"
                                 />
                             }
-                            contentContainerStyle={
-                                carts.length === 0
-                                    ? { flexGrow: 1 }
-                                    : undefined
-                            }
                         />
-                        {carts.length > 0 && (
 
-                            <View style={styles.summary}>
-                                <Text style={styles.summaryTitle}>Order Summary</Text>
+                        <View style={styles.summary}>
+                            <Text style={styles.summaryTitle}>
+                                Order Summary
+                            </Text>
 
-                                <View style={styles.row}>
-                                    <Text>Subtotal</Text>
-                                    <Text>{cartData?.formatted_sub_total}</Text>
-                                </View>
-
-                                <View style={styles.row}>
-                                    <Text>TAX</Text>
-                                    <Text>{cartData?.formatted_tax_total}</Text>
-                                </View>
-
-                                <View style={styles.divider} />
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View>
-                                        <Text style={styles.totalText}>{cartData?.formatted_base_grand_total}</Text>
-                                        <Text style={{ fontSize: 12, color: '#999' }}>Total amount to be paid</Text>
-                                    </View>
-
-                                    <TouchableOpacity
-                                        style={styles.checkoutButton}
-                                        onPress={() => navigation.navigate('Checkout')}
-                                    >
-                                        <Text style={styles.checkoutText}>
-                                            Proceed
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
+                            <View style={styles.row}>
+                                <Text>Subtotal</Text>
+                                <Text>
+                                    {cartData?.formatted_sub_total}
+                                </Text>
                             </View>
-                        )}
+
+                            <View style={styles.row}>
+                                <Text>TAX</Text>
+                                <Text>
+                                    {cartData?.formatted_tax_total}
+                                </Text>
+                            </View>
+
+                            <View style={styles.divider} />
+
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <View>
+                                    <Text style={styles.totalText}>
+                                        {cartData?.formatted_base_grand_total}
+                                    </Text>
+
+                                    <Text
+                                        style={{
+                                            fontSize: 12,
+                                            color: '#999',
+                                        }}
+                                    >
+                                        Total amount to be paid
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.checkoutButton}
+                                    onPress={() =>
+                                        navigation.navigate('Checkout')
+                                    }
+                                >
+                                    <Text style={styles.checkoutText}>
+                                        Proceed
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </>
                 )}
             </SafeAreaView>
@@ -390,5 +441,54 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '700',
         fontSize: 16,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 30,
+    },
+
+    emptyIcon: {
+        width: 110,
+        height: 110,
+        borderRadius: 55,
+        backgroundColor: '#EAF1FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+
+    emptyTitle: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#222',
+        marginBottom: 8,
+    },
+
+    emptyText: {
+        fontSize: 14,
+        color: '#777',
+        textAlign: 'center',
+        lineHeight: 21,
+        marginBottom: 25,
+    },
+
+    shopButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#0C3F80',
+        paddingHorizontal: 25,
+        paddingVertical: 13,
+        borderRadius: 25,
+        elevation: 3,
+    },
+
+    shopButtonText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '700',
+        marginLeft: 8,
     },
 });

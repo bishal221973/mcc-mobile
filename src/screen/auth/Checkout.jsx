@@ -3,7 +3,6 @@ import {
     StyleSheet,
     Text,
     View,
-    Image,
     TouchableOpacity,
     FlatList,
     SafeAreaView,
@@ -14,7 +13,6 @@ import {
 } from 'react-native';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
 import CartService from "../../services/cart"
 import axios from "../../services/axios"
 import AddressForm from "../../component/AddressForm"
@@ -82,7 +80,6 @@ const Checkout = ({ navigation }) => {
 
     const renderAddress = ({ item }) => {
         const selected = selectedAddress?.id === item.id;
-
         return (
             <Address setBillingAddress={setBillingAddress} item={item} selected={selected} />
 
@@ -91,7 +88,6 @@ const Checkout = ({ navigation }) => {
 
     const renderShippingAddress = ({ item }) => {
         const selected = shippingAddress?.id === item.id;
-
         return (
             <Address setBillingAddress={setShippingAddress} item={item} selected={selected} />
 
@@ -100,7 +96,6 @@ const Checkout = ({ navigation }) => {
 
     const loadCart = async () => {
         const token = await AsyncStorage.getItem('token');
-
         if (token) {
             try {
                 const cart = await CartService.getServerCart();
@@ -119,17 +114,11 @@ const Checkout = ({ navigation }) => {
         }
     };
 
-
-
-
     useEffect(() => {
         const redirectLogin = async () => {
-            console.log('Checking token...');
             const token = await AsyncStorage.getItem('token');
-            console.log('Token:', token);
-
+          
             if (!token) {
-                console.log('Redirecting...');
                 navigation.replace('Login');
             }
         };
@@ -311,129 +300,6 @@ const Checkout = ({ navigation }) => {
         <Payment selectPaymentMethod={selectPaymentMethod} key={item.id} item={item} selectedPayment={selectedPayment} />
     );
 
-    // const saveAddress = async () => {
-    //     try {
-    //         if (!selectedAddress || !shippingAddress) {
-    //             Alert.alert('Error', 'Please select address');
-    //             return;
-    //         }
-
-    //         const addressPayload = {
-    //             shipping: {
-    //                 address: shippingAddress.address,
-    //                 save_as_address: false,
-    //                 first_name: shippingAddress.first_name,
-    //                 last_name: shippingAddress.last_name,
-    //                 email: shippingAddress.email,
-    //                 company_name: shippingAddress.company_name,
-    //                 city: shippingAddress.city,
-    //                 state: shippingAddress.state,
-    //                 country: shippingAddress.country,
-    //                 postcode: shippingAddress.postcode,
-    //                 phone: shippingAddress.phone,
-    //                 vat_id: shippingAddress.vat_id,
-    //             },
-
-    //             billing: {
-    //                 address: selectedAddress.address,
-    //                 save_as_address: false,
-    //                 first_name: selectedAddress.first_name,
-    //                 last_name: selectedAddress.last_name,
-    //                 email: selectedAddress.email,
-    //                 company_name: selectedAddress.company_name,
-    //                 city: selectedAddress.city,
-    //                 state: selectedAddress.state,
-    //                 country: selectedAddress.country,
-    //                 postcode: selectedAddress.postcode,
-    //                 phone: selectedAddress.phone,
-    //                 vat_id: selectedAddress.vat_id,
-    //             },
-
-    //             shipping_method: selectedShippingMethod,
-
-    //             payment: {
-    //                 method: selectedPayment,
-    //             },
-    //         };
-
-    //         console.time('PLACE ORDER');
-
-    //         // 1. Save address
-    //         console.time('save-address');
-
-    //         const addressResponse = await axios.post(
-    //             '/customer/checkout/save-address',
-    //             addressPayload
-    //         );
-
-    //         console.timeEnd('save-address');
-
-    //         // 2. Save shipping
-    //         console.time('save-shipping');
-
-    //         const shippingResponse = await axios.post(
-    //             '/customer/checkout/save-shipping',
-    //             {
-    //                 shipping_method: selectedShippingMethod
-    //                     ? 'free_free'
-    //                     : 'flatrate_flatrate',
-    //             }
-    //         );
-
-    //         console.timeEnd('save-shipping');
-
-    //         // 3. Save payment
-    //         console.time('save-payment');
-
-    //         const paymentResponse = await axios.post(
-    //             '/customer/checkout/save-payment',
-    //             {
-    //                 payment: {
-    //                     method: selectedPayment,
-    //                 },
-    //             }
-    //         );
-
-    //         console.timeEnd('save-payment');
-
-    //         // 4. Place order
-    //         console.time('save-order');
-
-    //         const orderResponse = await axios.post(
-    //             '/customer/checkout/save-order'
-    //         );
-
-    //         console.timeEnd('save-order');
-
-    //         console.timeEnd('PLACE ORDER');
-
-    //         console.log('Order:', orderResponse.data);
-
-    //         Alert.alert(
-    //             'Success',
-    //             'Order placed successfully',
-    //             [
-    //                 {
-    //                     text: 'OK',
-    //                     onPress: () => navigation.navigate('Order'),
-    //                 },
-    //             ]
-    //         );
-
-    //     } catch (error) {
-    //         console.error(
-    //             'Order error:',
-    //             error.response?.data || error.message
-    //         );
-
-    //         Alert.alert(
-    //             'Error',
-    //             error.response?.data?.message ||
-    //             'Unable to place order. Please try again.'
-    //         );
-    //     }
-    // }
-
     const [placingOrder, setPlacingOrder] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [placedOrder, setPlacedOrder] = useState(null);
@@ -562,111 +428,6 @@ const Checkout = ({ navigation }) => {
         }
     };
 
-    const saveAddress1 = async () => {
-        try {
-
-            if (!selectedAddress || !shippingAddress) {
-                Alert.alert('Error', 'Please select address');
-                return;
-            }
-
-
-
-            const payload = {
-                shipping: {
-                    "address": shippingAddress.address,
-                    "save_as_address": false,
-                    "first_name": shippingAddress.first_name,
-                    "last_name": shippingAddress.last_name,
-                    "email": shippingAddress.email,
-                    "company_name": shippingAddress.company_name,
-                    "city": shippingAddress.city,
-                    "state": shippingAddress.state,
-                    "country": shippingAddress.country,
-                    "postcode": shippingAddress.postcode,
-                    "phone": shippingAddress.phone,
-                    "vat_id": shippingAddress.vat_id,
-                },
-
-                billing: {
-                    "address": selectedAddress.address,
-                    "save_as_address": false,
-                    "first_name": selectedAddress.first_name,
-                    "last_name": selectedAddress.last_name,
-                    "email": selectedAddress.email,
-                    "company_name": selectedAddress.company_name,
-                    "city": selectedAddress.city,
-                    "state": selectedAddress.state,
-                    "country": selectedAddress.country,
-                    "postcode": selectedAddress.postcode,
-                    "phone": selectedAddress.phone,
-                    "vat_id": selectedAddress.vat_id,
-                },
-
-                shipping_method: selectedShippingMethod,
-
-                payment: {
-                    method: selectedPayment,
-                },
-            };
-
-            console.log(
-                'ORDER PAYLOAD:',
-                JSON.stringify(payload, null, 2)
-            );
-
-            const res = await axios.post(
-                '/customer/checkout/save-address',
-                payload
-            );
-            saveShipment();
-            console.log('Order response:', res.data);
-
-            // Alert.alert('Success', 'Order placed successfully');
-
-        } catch (error) {
-            console.log(
-                'Order error:',
-                error.response?.data || error.message
-            );
-        }
-    };
-
-    const saveShipment = async () => {
-
-        // return;
-        const payload = {
-            shipping_method: selectedShippingMethod ? 'free_free' : 'flatrate_flatrate',
-        };
-        const res = await axios.post(
-            '/customer/checkout/save-shipping',
-            payload
-        );
-        savePayment()
-        console.log('Order response:', res.data);
-
-        // Alert.alert('Success', 'Order placed successfully');
-    }
-
-    const savePayment = async () => {
-        const payload = {
-            payment: {
-                method: selectedPayment,
-            },
-        };
-        const res = await axios.post(
-            '/customer/checkout/save-payment',
-            payload
-        );
-
-        const res1 = await axios.post(
-            '/customer/checkout/save-order'
-        );
-
-        console.log('Order response:', res.data);
-
-        Alert.alert('Success', 'Order placed successfully');
-    }
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -800,11 +561,7 @@ const Checkout = ({ navigation }) => {
     );
 
     const [loading, setLoading] = useState(true);
-    // useEffect(() => {
-    //     loadCart();
-    //     fetchAddress();
-    //     fetchConfig();
-    // }, []);
+   
 
     useEffect(() => {
         const loadCheckout = async () => {
@@ -909,7 +666,7 @@ const Checkout = ({ navigation }) => {
                                 style={styles.continueButton}
                                 onPress={() => {
                                     setOrderSuccess(false);
-                                    navigation.navigate('Home');
+                                    navigation.replace('Drawer');
                                 }}
                             >
                                 <Text style={styles.continueButtonText}>

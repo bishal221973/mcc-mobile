@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,44 +7,104 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
-
+import axios from "../../services/axios"
 const menus = [
   {
     id: 1,
     title: 'My Orders',
     icon: 'bag-handle-outline',
-    screen:'Orders'
+    screen: 'Orders'
   },
   {
     id: 2,
     title: 'Wishlist',
     icon: 'heart-outline',
-    screen:'Wishlist'
+    screen: 'Wishlist'
   },
   {
     id: 3,
     title: 'Saved Addresses',
     icon: 'location-outline',
-    screen:'Address'
+    screen: 'Address'
   },
   {
     id: 4,
     title: 'Notifications',
     icon: 'notifications-outline',
-    screen:'Notification'
+    screen: 'Notification'
   },
   {
     id: 5,
     title: 'Change Password',
     icon: 'lock-closed-outline',
-    screen:'ChangePassword'
+    screen: 'ChangePassword'
   }
 ];
 
-const Account = ({navigation}) => {
+
+const Account = ({ navigation }) => {
+
+  const [customer, setCustomer] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [wishLists, setWishLists] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+
+  const fetchProfile = async () => {
+    const response = await axios.get('/customer/get');
+    setCustomer(response?.data?.data);
+  }
+
+
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get('/customer/orders');
+      // console.log('Orders response:', res.data);
+      // Alert.alert('success',"Hello");
+      setOrders(res.data?.data || []);
+    } catch (error) {
+      console.log(
+        'Failed to fetch order:',
+        error?.response?.data || error.message
+      );
+    }
+  };
+
+  const fetchWishlist = async () => {
+    try {
+      const res = await axios.get('/customer/wishlist');
+      setWishLists(res.data?.data || []);
+    } catch (error) {
+      console.log(
+        'Failed to fetch order:',
+        error?.response?.data || error.message
+      );
+    }
+  };
+
+  const fetchAddress = async () => {
+    try {
+      const res = await axios.get('/customer/addresses');
+      setAddresses(res.data?.data || []);
+    } catch (error) {
+      console.log(
+        'Failed to fetch order:',
+        error?.response?.data || error.message
+      );
+    }
+  };
+
+
+  useEffect(() => {
+    fetchProfile();
+    fetchOrders();
+    fetchWishlist();
+    fetchAddress();
+  },[])
   return (
     <>
       <Header />
@@ -52,6 +112,7 @@ const Account = ({navigation}) => {
       <SafeAreaView style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Profile Card */}
+          {/* <Text>{JSON.stringify(addresses)}</Text> */}
 
           <View style={styles.profileCard}>
             <Image
@@ -62,13 +123,13 @@ const Account = ({navigation}) => {
             />
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.name}>Bishal Chaudhary</Text>
+              <Text style={styles.name}>{customer.first_name} {customer.last_name}</Text>
 
               <Text style={styles.email}>
-                bishal@example.com
+                {customer.email}
               </Text>
 
-              <TouchableOpacity onPress={()=>navigation.navigate('Profile')} style={styles.editBtn}>
+              <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.editBtn}>
                 <Text style={styles.editText}>
                   Edit Profile
                 </Text>
@@ -79,18 +140,18 @@ const Account = ({navigation}) => {
           {/* Stats */}
 
           <View style={styles.statsContainer}>
-            <TouchableOpacity  onPress={() => navigation.navigate('Orders')} style={styles.statCard}>
-              <Text style={styles.statValue}>12</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Orders')} style={styles.statCard}>
+              <Text style={styles.statValue}>{orders.length}</Text>
               <Text style={styles.statLabel}>Orders</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => navigation.navigate('Wishlist')} style={styles.statCard}>
-              <Text style={styles.statValue}>5</Text>
+              <Text style={styles.statValue}>{wishLists.length}</Text>
               <Text style={styles.statLabel}>Wishlist</Text>
             </TouchableOpacity>
 
             <View style={styles.statCard}>
-              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statValue}>{addresses.length}</Text>
               <Text style={styles.statLabel}>Addresses</Text>
             </View>
           </View>

@@ -146,7 +146,7 @@ const ProductShow = ({ route }) => {
                     product={product}
                 />
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={styles.favoriteBtn}
                     onPress={() =>
                         setIsFavorite(!isFavorite)
@@ -167,7 +167,7 @@ const ProductShow = ({ route }) => {
                         }
                     />
 
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
 
 

@@ -11,12 +11,17 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from "../services/axios"
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CartService from "../services/cart"
+import Toast from 'react-native-toast-message';
+
 
 const PRIMARY = '#0C3F80';
 
 const Products = ({ title, filters }) => {
 
     const navigation = useNavigation();
+    const [quantity, setQuantity] = useState(1);
 
     const [products, setProducts] = useState([]);
     const fetchProducts = async () => {
@@ -40,20 +45,60 @@ const Products = ({ title, filters }) => {
         fetchProducts()
     })
 
+
+    const addToWishlist = async (productId) => {
+        const response = await axios.post(`/customer/wishlist/${productId}`);
+        fetchProducts();
+        Alert.alert('success', "Saved")
+    }
+
+    const handleAddToCart = async (product) => {
+
+
+        console.log("start")
+
+        const token = await AsyncStorage.getItem('token');
+
+
+        if (token) {
+            const pId = product.id;
+
+            const resc = await CartService.addServerItem(
+                {
+                    product_id: pId.toString(),
+                },
+                quantity
+            );
+
+        } else {
+            await CartService.addToLocalCart(
+                {
+                    product: product,
+                },
+                quantity
+            );
+        }
+
+
+        Toast.show({
+            type: 'success',
+            text1: 'Added to Cart',
+            text2: 'Product has been added to your cart 🛒',
+        });
+    };
+
     const renderProduct = ({ item }) => (
         <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ProductShow', {
             id: item.id
         })}>
-            {/* Discount Badge */}
-            {/* <View style={styles.discountBadge}>
-                
-            </View> */}
-            {/* <Text style={styles.discountText}>{item.discount}</Text> */}
 
-            {/* Wishlist */}
-            <TouchableOpacity style={styles.favorite}>
-                <Ionicons name="heart-outline" size={20} color="#fff" />
-            </TouchableOpacity>
+            {/* <TouchableOpacity style={styles.favorite} onPress={() => addToWishlist(item.id)}>
+                <Ionicons
+                    name={item?.is_saved ? 'heart' : 'heart-outline'}
+                    size={20}
+                    color={item?.is_saved ? '#EF4444' : '#fff'}
+                />
+            </TouchableOpacity> */}
 
             {/* <Text>{JSON.stringify(item?.images[0]?.url)}</Text> */}
             {/* Product Image */}
@@ -75,7 +120,7 @@ const Products = ({ title, filters }) => {
             </View>
 
             {/* Add to Cart */}
-            <TouchableOpacity style={styles.cartButton}>
+            <TouchableOpacity style={styles.cartButton} onPress={() => handleAddToCart(item)}>
                 <Ionicons name="cart-outline" size={18} color="#fff" />
                 <Text style={styles.cartText}>Add</Text>
             </TouchableOpacity>
@@ -93,9 +138,11 @@ const Products = ({ title, filters }) => {
                     {title}
                 </Text>
 
-                <TouchableOpacity onPress={()=>{navigation.navigate('AllProduct',{
-                    categoryId:filters.category_id
-                })}}>
+                <TouchableOpacity onPress={() => {
+                    navigation.navigate('AllProduct', {
+                        categoryId: filters.category_id
+                    })
+                }}>
                     <Text style={styles.viewAll}>View All</Text>
                 </TouchableOpacity>
             </View>

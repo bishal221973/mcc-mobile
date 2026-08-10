@@ -1,20 +1,32 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../../component/Header';
 import OrderInfo from "../../component/Order/OrderInfo";
 import OrderItem from "../../component/Order/OrderItem";
 import OrderSummary from "../../component/Order/OrderSummary";
+import axios from "../../services/axios";
 const OrderShow = ({ route }) => {
     const { order } = route.params;
     const [activeTab, setActiveTab] = useState('information'); // 'information' or 'invoice'
 
-    const orderData = order?.data?.order || {};
+    const orderData = order?.data?.order || order?.data || order || {};
+
+    const [orderDatas,setOrderDatas]=useState(null);
+    const fetchOrders=async()=>{
+        const response=await axios.get(`/customer/orders/${order?.id}`)
+        setOrderDatas(response?.data?.data);
+    }
+
+    useEffect(()=>{
+        fetchOrders();
+    })
 
     return (
         <>
             <Header />
             <View style={styles.container}>
                 {/* Tab Headers */}
+                {/* <Text>{JSON.stringify(orderDatas)}</Text> */}
                 <View style={styles.tabContainer}>
                     <TouchableOpacity
                         style={[styles.tab, activeTab === 'information' && styles.activeTab]}
@@ -39,16 +51,16 @@ const OrderShow = ({ route }) => {
                 <ScrollView style={styles.contentContainer}>
                     {activeTab === 'information' ? (
                         <>
-                            <OrderInfo order={order?.data?.order} />
-                            <OrderItem order={order?.data?.order}/>
-                            <OrderSummary order={order?.data?.order}/>
+                            <OrderInfo order={orderDatas ?? order?.data?.order ?? orderData} fetchOrders={fetchOrders}/>
+                            <OrderItem order={orderDatas ?? order?.data?.order ?? orderData}/>
+                            <OrderSummary order={orderDatas ?? order?.data?.order ?? orderData}/>
                         </>
                     ) : (
                         <View style={styles.card}>
                             <Text style={styles.title}>Invoice Details</Text>
-                            <Text style={styles.label}>Total Amount: <Text style={styles.value}>${orderData.total || '0.00'}</Text></Text>
-                            <Text style={styles.label}>Payment Method: <Text style={styles.value}>{orderData.payment_method || 'N/A'}</Text></Text>
-                            <Text style={styles.label}>Billing Address: <Text style={styles.value}>{orderData.billing_address || 'N/A'}</Text></Text>
+                            <Text style={styles.label}>Total Amount: <Text style={styles.value}>${orderDatas.total || '0.00'}</Text></Text>
+                            <Text style={styles.label}>Payment Method: <Text style={styles.value}>{orderDatas.payment_method || 'N/A'}</Text></Text>
+                            <Text style={styles.label}>Billing Address: <Text style={styles.value}>{orderDatas.billing_address || 'N/A'}</Text></Text>
                         </View>
                     )}
                 </ScrollView>

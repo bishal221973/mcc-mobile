@@ -39,7 +39,7 @@ const OrderItem = ({ order }) => {
             </View>
 
             <View style={styles.listContainer}>
-
+                {/* <Text>{JSON.stringify(item)}</Text> */}
                 {/* Subtotal */}
                 <View style={styles.priceQtyRow}>
                     <Text style={styles.lbl}>
@@ -47,7 +47,7 @@ const OrderItem = ({ order }) => {
                     </Text>
 
                     <Text style={styles.valLbl}>
-                        {formatAmount(subtotal)}
+                        {item?.formatted_base_sub_total}
                     </Text>
                 </View>
 
@@ -58,7 +58,7 @@ const OrderItem = ({ order }) => {
                     </Text>
 
                     <Text style={styles.valLbl}>
-                        {formatAmount(shipping)}
+                        {item?.formatted_shipping_amount}
                     </Text>
                 </View>
 
@@ -69,7 +69,7 @@ const OrderItem = ({ order }) => {
                     </Text>
 
                     <Text style={styles.valLbl}>
-                        {formatAmount(tax)}
+                        {item?.formatted_tax_amount}
                     </Text>
                 </View>
 
@@ -93,14 +93,15 @@ const OrderItem = ({ order }) => {
                     <Text style={styles.lbl}>
                         Total Paid
                     </Text>
+                    {/* <Text>{JSON.stringify(item)}</Text> */}
 
                     <Text style={styles.paidValue}>
-                        {formatAmount(totalPaid)}
+                        {item?.formatted_grand_total_invoiced}
                     </Text>
                 </View>
 
                 {/* Total Refunded */}
-                <View style={styles.priceQtyRow}>
+                {/* <View style={styles.priceQtyRow}>
                     <Text style={styles.lbl}>
                         Total Refunded
                     </Text>
@@ -108,7 +109,7 @@ const OrderItem = ({ order }) => {
                     <Text style={styles.valLbl}>
                         {formatAmount(totalRefunded)}
                     </Text>
-                </View>
+                </View> */}
 
                 {/* Total Due */}
                 <View style={styles.dueRow}>
@@ -117,7 +118,7 @@ const OrderItem = ({ order }) => {
                     </Text>
 
                     <Text style={styles.dueValue}>
-                        {formatAmount(totalDue)}
+                        Rs. {item.grand_total-item?.grand_total_invoiced}
                     </Text>
                 </View>
 

@@ -1,319 +1,379 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
     View,
     FlatList,
     TouchableOpacity,
-    Image,
     SafeAreaView,
+    Image,
+    ActivityIndicator,
+    RefreshControl
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
-const Orders = ({ navigation }) => {
-    const [orders] = useState([
-        {
-            id: 'ORD-1001',
-            date: '06 Jul 2026',
-            status: 'Delivered',
-            total: '$1,799',
-            qty: 1,
-            product: 'Apple iPhone 15 Pro',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: 'ORD-1002',
-            date: '03 Jul 2026',
-            status: 'Processing',
-            total: '$249',
-            qty: 2,
-            product: 'Nike Air Max',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: 'ORD-1003',
-            date: '28 Jun 2026',
-            status: 'Cancelled',
-            total: '$599',
-            qty: 1,
-            product: 'Samsung Galaxy Watch',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: 'ORD-1004',
-            date: '22 Jun 2026',
-            status: 'Delivered',
-            total: '$129',
-            qty: 1,
-            product: 'Wireless Earbuds',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: 'ORD-1005',
-            date: '22 Jun 2026',
-            status: 'Delivered',
-            total: '$129',
-            qty: 1,
-            product: 'Wireless Earbuds',
-            image: require('../../../assets/products/3.webp'),
-        },
-    ]);
+import axios from "../../services/axios";
 
-    const getStatusColor = status => {
-        switch (status) {
-            case 'Delivered':
-                return '#28a745';
-            case 'Processing':
-                return '#ff9800';
-            case 'Cancelled':
-                return '#e53935';
-            default:
-                return '#999';
+const Orders = ({ navigation }) => {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get('/customer/orders');
+            console.log('Orders response:', res.data);
+            setOrders(res.data?.data || []);
+        } catch (error) {
+            console.log(
+                'Failed to fetch order:',
+                error?.response?.data || error.message
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
-    const renderItem = ({ item }) => (
-        <View style={styles.card}>
-            {/* Top */}
-            <View style={styles.topRow}>
-                <View>
-                    <Text style={styles.orderId}>{item.id}</Text>
-                    <Text style={styles.date}>{item.date}</Text>
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const onRefresh = async () => {
+        try {
+            setRefreshing(true);
+            await fetchOrders();
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    // const getStatusStyles = (status) => {
+    //     switch (status) {
+    //         case 'Delivered':
+    //             return { text: '#2E7D32', bg: '#E8F5E9' };
+    //         case 'Processing':
+    //             return { text: '#EF6C00', bg: '#FFF3E0' };
+    //         case 'Cancelled':
+    //             return { text: '#C62828', bg: '#FFEBEE' };
+    //         default:
+    //             return { text: '#616161', bg: '#F5F5F5' };
+    //     }
+    // };
+    const getStatusStyles = (status) => {
+        const normalizedStatus = String(status || '').trim().toLowerCase();
+
+        switch (normalizedStatus) {
+            case 'delivered':
+                return { text: '#2E7D32', bg: '#E8F5E9' };
+
+            case 'processing':
+                return { text: '#0991B2', bg: '#0991B210' };
+
+            case 'cancelled':
+            case 'canceled':
+                return { text: '#C62828', bg: '#FFEBEE' };
+            case 'pending':
+                return { text: '#C62828', bg: '#FFEBEE' };
+
+            default:
+                return { text: '#616161', bg: '#F5F5F5' };
+        }
+    };
+
+    const renderItem = ({ item }) => {
+        const statusStyle = getStatusStyles(item.status);
+
+        const itemImage =
+            item?.items?.[0]?.product?.image_url ||
+            'https://placeholder.com';
+
+        const itemName = item?.items?.[0]?.name || 'Order Items';
+        const totalItems = item?.items?.length || 1;
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() =>
+                    navigation.navigate('OrderShow', {
+                        order: item,
+                    })
+                }
+            >
+                <View style={styles.topRow}>
+                    <View>
+                        <Text style={styles.orderId}>
+                            Order #{item.id}
+                        </Text>
+
+                        <Text style={styles.date}>
+                            {item.created_at}
+                        </Text>
+                    </View>
+
+                    <View
+                        style={[
+                            styles.statusBadge,
+                            {
+                                backgroundColor: statusStyle.bg,
+                            },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.statusText,
+                                {
+                                    color: statusStyle.text,
+                                },
+                            ]}
+                        >
+                            {item.status}
+                        </Text>
+                    </View>
                 </View>
+            </TouchableOpacity>
+        );
+    };
 
-                <View
-                    style={[
-                        styles.statusBadge,
-                        { backgroundColor: getStatusColor(item.status) },
-                    ]}>
-                    <Text style={styles.statusText}>{item.status}</Text>
-                </View>
-            </View>
+    // const renderItem = ({ item }) => {
+    //     const statusStyle = getStatusStyles(item.status);
+    //     const itemImage = item?.items?.[0]?.product?.image_url || 'https://placeholder.com';
+    //     const itemName = item?.items?.[0]?.name || 'Order Items';
+    //     const totalItems = item?.items?.length || 1;
 
-            {/* Product */}
-            <View style={styles.productRow}>
-                <Image source={item.image} style={styles.image} />
+    //     return (
+    //         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('OrderShow', { order: item })}>
+    //             <View style={styles.topRow}>
+    //                 <View>
+    //                     <Text style={styles.orderId}>Order #{item.id}</Text>
+    //                     <Text style={styles.date}>{item.created_at}</Text>
+    //                 </View>
+    //                 <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+    //                     <Text style={[styles.statusText, { color: statusStyle.text }]}>
+    //                         {item.status}
+    //                     </Text>
+    //                 </View>
+    //             </View>
 
-                <View style={styles.info}>
-                    <Text numberOfLines={2} style={styles.productName}>
-                        {item.product}
-                    </Text>
 
-                    <Text style={styles.qty}>
-                        Qty: {item.qty}
-                    </Text>
 
-                    <Text style={styles.price}>{item.total}</Text>
-                </View>
-            </View>
+    //             <View style={styles.buttonRow}>
+    //                 <View style={styles.priceContainer}>
+    //                     <Text style={styles.priceLabel}>Total Amount</Text>
+    //                     <Text style={styles.priceText}>
+    //                         {item?.formatted_base_sub_total || 'N/A'}
+    //                     </Text>
+    //                 </View>
 
-            {/* Buttons */}
-            <View style={styles.buttonRow}>
-                <TouchableOpacity
-                    style={styles.outlineButton}
-                    onPress={() =>
-                        navigation.navigate('OrderDetails', {
-                            order: item,
-                        })
-                    }>
-                    <Ionicons
-                        name="document-text-outline"
-                        size={16}
-                        color="#0C3F80"
-                    />
 
-                    <Text style={styles.outlineText}>
-                        Details
-                    </Text>
-                </TouchableOpacity>
+    //             </View>
+    //         </TouchableOpacity>
+    //     );
+    // };
 
-                <TouchableOpacity style={styles.primaryButton}>
-                    <Ionicons
-                        name="refresh-outline"
-                        size={16}
-                        color="#fff"
-                    />
-
-                    <Text style={styles.primaryText}>
-                        Buy Again
-                    </Text>
-                </TouchableOpacity>
-            </View>
+    const renderEmptyState = () => (
+        <View style={styles.emptyContainer}>
+            <Ionicons name="bag-handle-outline" size={64} color="#B0BEC5" />
+            <Text style={styles.emptyTitle}>No Orders Yet</Text>
+            <Text style={styles.emptySubtitle}>When you place an order, it will appear here.</Text>
         </View>
     );
 
     return (
-        <>
+        <View style={styles.screenWrapper}>
             <Header />
             <SafeAreaView style={styles.container}>
-                {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>
-                        My Orders
-                    </Text>
-
+                    <Text style={styles.headerTitle}>My Orders</Text>
                     <Text style={styles.headerSubtitle}>
-                        {orders.length} Orders Found
+                        {orders.length} {orders.length === 1 ? 'Order' : 'Orders'} Found
                     </Text>
                 </View>
 
-                <FlatList
-                    data={orders}
-                    keyExtractor={item => item.id}
-                    renderItem={renderItem}
-                    contentContainerStyle={{
-                        paddingHorizontal: 12,
-                        paddingBottom: 20,
-                    }}
-                    showsVerticalScrollIndicator={false}
-                />
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#0C3F80" />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={orders}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={renderItem}
+                        ListEmptyComponent={renderEmptyState}
+                        showsVerticalScrollIndicator={false}
+
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                colors={['#0C3F80']}
+                                tintColor="#0C3F80"
+                            />
+                        }
+                    />
+                )}
             </SafeAreaView>
-        </>
+        </View>
     );
 };
 
 export default Orders;
 
 const styles = StyleSheet.create({
+    screenWrapper: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
+    },
     container: {
         flex: 1,
-        backgroundColor: '#F5F6FA',
     },
-
     header: {
         backgroundColor: '#fff',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        elevation: 2,
-        marginBottom: 8,
+        paddingHorizontal: 20,
+        paddingVertical: 18,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEEEEE',
     },
-
     headerTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#222',
+        fontSize: 26,
+        fontWeight: '800',
+        color: '#1A1A1A',
+        letterSpacing: -0.5,
     },
-
     headerSubtitle: {
         fontSize: 13,
-        color: '#777',
-        marginTop: 2,
+        color: '#666666',
+        marginTop: 4,
+        fontWeight: '500',
     },
 
     card: {
         backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 10,
-        marginBottom: 10,
-        elevation: 2,
+        // borderRadius: 16,
+        padding: 16,
+        marginBottom: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 3,
     },
-
     topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
+        alignItems: 'flex-start',
+        // borderBottomWidth: 1,
+        // borderBottomColor: '#F5F5F5',
+        paddingBottom: 1,
+        marginBottom: 12,
     },
-
     orderId: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
-        color: '#222',
+        color: '#1A1A1A',
     },
-
     date: {
         fontSize: 12,
-        color: '#777',
-        marginTop: 2,
+        color: '#888888',
+        marginTop: 3,
     },
-
     statusBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
     },
-
     statusText: {
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: '600',
+        fontSize: 12,
+        fontWeight: '700',
     },
-
     productRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F5F5F5',
     },
-
     image: {
-        width: 70,
-        height: 70,
-        borderRadius: 8,
-        resizeMode: 'cover',
+        width: 50,
+        height: 50,
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
     },
-
     info: {
         flex: 1,
-        marginLeft: 12,
+        marginLeft: 14,
     },
-
     productName: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#222',
+        color: '#2C3E50',
     },
-
     qty: {
-        fontSize: 12,
-        color: '#777',
-        marginTop: 4,
+        fontSize: 13,
+        color: '#7F8C8D',
+        marginTop: 3,
     },
-
-    price: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: '#0C3F80',
-        marginTop: 4,
-    },
-
     buttonRow: {
         flexDirection: 'row',
-        marginTop: 12,
-    },
-
-    outlineButton: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#0C3F80',
-        borderRadius: 8,
-        paddingVertical: 9,
-        marginRight: 5,
+        // marginTop: 12,
+        // backgroundColor:'#f0f0f0',
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 5
     },
-
+    priceContainer: {
+        flexDirection: 'column',
+    },
+    priceLabel: {
+        fontSize: 11,
+        color: '#888888',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    priceText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginTop: 1,
+    },
+    outlineButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F0F4F8',
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        borderRadius: 8,
+    },
     outlineText: {
-        marginLeft: 5,
+        marginRight: 4,
         fontSize: 13,
         color: '#0C3F80',
-        fontWeight: '600',
+        fontWeight: '700',
     },
-
-    primaryButton: {
+    loadingContainer: {
         flex: 1,
-        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#0C3F80',
-        borderRadius: 8,
-        paddingVertical: 9,
-        marginLeft: 5,
     },
-
-    primaryText: {
-        marginLeft: 5,
-        fontSize: 13,
-        color: '#fff',
-        fontWeight: '600',
+    emptyContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 80,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#455A64',
+        marginTop: 16,
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: '#90A4AE',
+        textAlign: 'center',
+        marginTop: 6,
+        paddingHorizontal: 32,
     },
 });

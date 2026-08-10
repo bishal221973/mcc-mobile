@@ -1,8 +1,17 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
-
-const OrderInfo = ({ order }) => {
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import axios from "../../services/axios"
+const OrderInfo = ({ order, fetchOrders }) => {
     // Format the date safely
+
+    const [orderStatus, setOrderStatus] = useState(order?.status);
+
+    useEffect(() => {
+        setOrderStatus(order?.status);
+    }, [order?.status]);
+
+
+
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         try {
@@ -15,6 +24,8 @@ const OrderInfo = ({ order }) => {
             return 'N/A';
         }
     };
+
+
 
     // Modern status theme generator
     const getStatusTheme = (status) => {
@@ -33,10 +44,28 @@ const OrderInfo = ({ order }) => {
 
     const statusTheme = getStatusTheme(order?.status);
 
+    const cancelOrder = async () => {
+        const response = await axios.post(`/customer/orders/${order.id}/cancel`)
+        fetchOrders();
+        setOrderStatus('canceled');
+    }
+
+    const reOrder = async () => {
+        try {
+            const response = await axios.get(`/customer/orders/reorder/${order.id}`)
+            Alert.alert('Success', "Saved");
+            fetchOrders();
+        } catch (error) {
+            console.log('Status:', error.response?.status);
+            console.log('Data:', error.response?.data);
+            console.log('URL:', error.config?.url);
+            console.log('Method:', error.config?.method);
+        }
+    }
     return (
         <View style={styles.card}>
             {/* <Text>{JSON.stringify(order)}</Text> */}
-            <View style={{paddingHorizontal:10}}>
+            <View style={{ paddingHorizontal: 10 }}>
                 <View style={styles.row}>
                     <Text style={styles.label}>Order ID</Text>
                     <Text style={styles.valueId}>#{order?.id || 'N/A'}</Text>
@@ -52,15 +81,22 @@ const OrderInfo = ({ order }) => {
                     <View style={[styles.statusBadge, { backgroundColor: statusTheme.bg }]}>
                         <View style={[styles.statusDot, { backgroundColor: statusTheme.text }]} />
                         <Text style={[styles.statusText, { color: statusTheme.text }]}>
-                            {order?.status || 'N/A'}
+                            {orderStatus || 'N/A'}
                         </Text>
                     </View>
                 </View>
             </View>
-            <View style={[styles.row,{paddingHorizontal:10,marginBottom:5}]}>
-                <TouchableOpacity style={{ backgroundColor: '#e6e6e6', width: '100%', padding: 10,borderRadius:10 }}>
-                    <Text style={{ textAlign: 'center',fontWeight:'bold' }}>Reorder</Text>
-                </TouchableOpacity>
+            <View style={[styles.row, { paddingHorizontal: 10, marginBottom: 5 }]}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                    {/* <TouchableOpacity onPress={reOrder} style={{ backgroundColor: '#e6e6e6', flex: 1, padding: 10, borderRadius: 10 }}>
+                        <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Reorder</Text>
+                    </TouchableOpacity> */}
+                    {order?.status == 'pending' && (
+                        <TouchableOpacity onPress={cancelOrder} style={{ backgroundColor: '#e6e6e6', flex: 1, padding: 10, borderRadius: 10 }}>
+                            <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Cancel</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
         </View>
     )

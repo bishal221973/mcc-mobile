@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useFocusEffect } from '@react-navigation/native';
-
+import CartEvents from '../services/CartEvents';
 
 import Home from "../screen/auth/Home"
 // import Wallet from "../screen/auth/Wallet"
@@ -24,7 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import CartService from "../services/cart"
+import CartService from "../services/CartEvents"
 
 
 const Tab = createBottomTabNavigator()
@@ -61,6 +61,20 @@ const Tabs = () => {
   useEffect(() => {
     loadCart();
   }, []);
+
+
+useEffect(() => {
+    const updateCartCount = (cart) => {
+        setCartCount(cart.length);
+    };
+    Alert.alert('sfsf','asd')
+    // Listen for cart changes
+    const unsubscribe = CartEvents.subscribe(updateCartCount);
+
+    // Get initial cart
+    loadCart();
+    return unsubscribe;
+}, []);
 
   useFocusEffect(
     useCallback(() => {

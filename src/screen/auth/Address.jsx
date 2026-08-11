@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -9,48 +9,30 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
+import axios from "../../services/axios"
 const Address = ({ navigation }) => {
-    const [addresses, setAddresses] = useState([
-        {
-            id: '1',
-            address:
-                'Tikapur Municipality-1, Kailali, Sudurpashchim Province, Nepal',
-            type: 'Home',
-            default: true,
-        },
-        {
-            id: '2',
-            address:
-                'New Baneshwor, Kathmandu Metropolitan City, Bagmati Province, Nepal',
-            type: 'Office',
-            default: false,
-        },
-        {
-            id: '3',
-            address:
-                'New Baneshwor, Kathmandu Metropolitan City, Bagmati Province, Nepal',
-            type: 'Office',
-            default: false,
-        },
-        {
-            id: '4',
-            address:
-                'New Baneshwor, Kathmandu Metropolitan City, Bagmati Province, Nepal',
-            type: 'Office',
-            default: false,
-        },
-    ]);
+    const [addresses, setAddresses] = useState([]);
 
     const deleteAddress = id => {
         setAddresses(items => items.filter(item => item.id !== id));
     };
+
+    const fetchAddress=async()=>{
+        const response=await axios.get('/customer/addresses');
+        setAddresses(response?.data?.data);
+
+    }
+
+    useEffect(()=>{
+        fetchAddress();
+    })
 
     const renderItem = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.topRow}>
                 <View style={styles.badges}>
                     <View style={styles.typeBadge}>
-                        <Text style={styles.typeText}>{item.type}</Text>
+                        <Text style={styles.typeText}>{item.first_name} {item.last_name} ({item.company_name})</Text>
                     </View>
 
                     {item.default && (
@@ -99,6 +81,8 @@ const Address = ({ navigation }) => {
             <Header />
             <SafeAreaView style={styles.container}>
                 {/* Header */}
+
+                {/* <Text>{JSON.stringify(addresses)}</Text> */}
 
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>

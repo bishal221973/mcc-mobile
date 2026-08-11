@@ -94,9 +94,9 @@ const AllProduct = ({ route, navigation }) => {
             activeOpacity={0.8}
             onPress={() => navigation.navigate('ProductShow', { id: item.id })}
         >
-            <TouchableOpacity style={styles.favorite}>
+            {/* <TouchableOpacity style={styles.favorite}>
                 <Ionicons name="heart-outline" size={20} color="#fff" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             {/* Product Image */}
             <Image source={{ uri: item?.images[0]?.url }} style={styles.image} />

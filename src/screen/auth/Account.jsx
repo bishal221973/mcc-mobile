@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   Alert,
+  RefreshControl
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
@@ -52,6 +53,8 @@ const Account = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [wishLists, setWishLists] = useState([]);
   const [addresses, setAddresses] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
 
   const fetchProfile = async () => {
     const response = await axios.get('/customer/get');
@@ -99,18 +102,51 @@ const Account = ({ navigation }) => {
   };
 
 
+  // useEffect(() => {
+  //   fetchProfile();
+  //   fetchOrders();
+  //   fetchWishlist();
+  //   fetchAddress();
+  // },[])
+  const refreshData = async () => {
+    try {
+      setRefreshing(true);
+
+      await Promise.all([
+        fetchProfile(),
+        fetchOrders(),
+        fetchWishlist(),
+        fetchAddress(),
+      ]);
+    } catch (error) {
+      console.log(
+        'Refresh error:',
+        error?.response?.data || error?.message || error
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    fetchProfile();
-    fetchOrders();
-    fetchWishlist();
-    fetchAddress();
-  },[])
+    refreshData();
+  }, []);
   return (
     <>
       <Header />
 
       <SafeAreaView style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refreshData}
+              colors={['#0C3F80']}
+              tintColor="#0C3F80"
+            />
+          }
+        >
           {/* Profile Card */}
           {/* <Text>{JSON.stringify(addresses)}</Text> */}
 

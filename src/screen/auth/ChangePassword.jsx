@@ -170,8 +170,8 @@ const ChangePassword = ({ navigation }) => {
 
             await axios.put('/customer/profile', {
                 current_password: currentPassword,
-                password: newPassword,
-                password_confirmation: confirmPassword,
+                new_password: newPassword,
+                new_password_confirmation: confirmPassword,
 
                 first_name: customer?.first_name || '',
                 last_name: customer?.last_name || '',

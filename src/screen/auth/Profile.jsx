@@ -10,14 +10,21 @@ import {
     Image,
     Alert,
     ActivityIndicator,
+    Modal,
+    Platform,
 } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import Header from '../../component/Header';
+
 import {
     launchCamera,
     launchImageLibrary,
 } from 'react-native-image-picker';
+
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 import axios from '../../services/axios';
 
 const Profile = () => {
@@ -35,9 +42,36 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    const [showGender, setShowGender] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
     /*
     |--------------------------------------------------------------------------
-    | Fetch Customer Profile
+    | Gender Options
+    |--------------------------------------------------------------------------
+    |
+    | Bagisto customer gender values are generally:
+    | Male / Female / Other
+    |
+    */
+    const genderOptions = [
+        {
+            label: 'Male',
+            value: 'Male',
+        },
+        {
+            label: 'Female',
+            value: 'Female',
+        },
+        {
+            label: 'Other',
+            value: 'Other',
+        },
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch Profile
     |--------------------------------------------------------------------------
     */
     const fetchProfile = async () => {
@@ -60,17 +94,14 @@ const Profile = () => {
             setPhone(data?.phone || '');
             setGender(data?.gender || '');
 
-            // Bagisto may return a datetime.
-            // Convert it to YYYY-MM-DD.
-            setDob(
-                data?.date_of_birth
-                    ? String(data.date_of_birth).substring(0, 10)
-                    : ''
-            );
+            if (data?.date_of_birth) {
+                setDob(
+                    String(data.date_of_birth).substring(0, 10)
+                );
+            } else {
+                setDob('');
+            }
 
-            /*
-             * Use the image URL returned by your API if available.
-             */
             if (data?.image_url) {
                 setImage(data.image_url);
             } else if (data?.image) {
@@ -98,27 +129,73 @@ const Profile = () => {
 
     /*
     |--------------------------------------------------------------------------
+    | Format Date
+    |--------------------------------------------------------------------------
+    */
+    const formatDate = date => {
+        const year = date.getFullYear();
+
+        const month = String(
+            date.getMonth() + 1
+        ).padStart(2, '0');
+
+        const day = String(
+            date.getDate()
+        ).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Convert API DOB to Date
+    |--------------------------------------------------------------------------
+    */
+    const getDobDate = () => {
+        if (!dob) {
+            return new Date(2000, 0, 1);
+        }
+
+        const parts = dob.split('-');
+
+        if (parts.length !== 3) {
+            return new Date(2000, 0, 1);
+        }
+
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+
+        return new Date(year, month, day);
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Date Changed
+    |--------------------------------------------------------------------------
+    */
+    const handleDateChange = (event, selectedDate) => {
+        if (Platform.OS === 'android') {
+            setShowDatePicker(false);
+        }
+
+        if (selectedDate) {
+            setDob(formatDate(selectedDate));
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
     | Save Profile
     |--------------------------------------------------------------------------
     */
     const handleSave = async () => {
-        if (!customer) {
-            Toast.show({
-                type: 'error',
-                text1: 'Profile Not Loaded',
-                text2: 'Please wait for your profile to load.',
-            });
-
-            return;
-        }
-
         if (!firstName.trim()) {
             Toast.show({
                 type: 'error',
                 text1: 'First Name Required',
                 text2: 'Please enter your first name.',
             });
-
             return;
         }
 
@@ -128,7 +205,6 @@ const Profile = () => {
                 text1: 'Last Name Required',
                 text2: 'Please enter your last name.',
             });
-
             return;
         }
 
@@ -138,48 +214,47 @@ const Profile = () => {
                 text1: 'Email Required',
                 text2: 'Please enter your email address.',
             });
-
             return;
         }
 
-        if (!dob.trim()) {
+        if (!gender) {
+            Toast.show({
+                type: 'error',
+                text1: 'Gender Required',
+                text2: 'Please select your gender.',
+            });
+            return;
+        }
+
+        if (!dob) {
             Toast.show({
                 type: 'error',
                 text1: 'Date of Birth Required',
-                text2: 'Please enter your date of birth.',
+                text2: 'Please select your date of birth.',
             });
-
             return;
         }
 
         try {
             setSaving(true);
 
-            const response = await axios.put(
-                '/customer/profile',
-                {
-                    first_name: firstName.trim(),
-                    last_name: lastName.trim(),
-                    email: email.trim(),
-                    phone: phone.trim(),
-                    gender: gender || '',
-                    date_of_birth: dob.trim(),
-                }
-            );
+            await axios.put('/customer/profile', {
+                first_name: firstName.trim(),
+                last_name: lastName.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+                gender: gender,
+                date_of_birth: dob,
+            });
 
-            /*
-            |--------------------------------------------------------------------------
-            | Update local customer
-            |--------------------------------------------------------------------------
-            */
             setCustomer(prev => ({
                 ...prev,
                 first_name: firstName.trim(),
                 last_name: lastName.trim(),
                 email: email.trim(),
                 phone: phone.trim(),
-                gender: gender || '',
-                date_of_birth: dob.trim(),
+                gender: gender,
+                date_of_birth: dob,
             }));
 
             Toast.show({
@@ -200,11 +275,6 @@ const Profile = () => {
                 error?.response?.data?.error ||
                 'Unable to update your profile.';
 
-            /*
-            |--------------------------------------------------------------------------
-            | Bagisto Validation Errors
-            |--------------------------------------------------------------------------
-            */
             if (errors) {
                 const firstError = Object.values(errors)?.[0];
 
@@ -223,6 +293,16 @@ const Profile = () => {
         } finally {
             setSaving(false);
         }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gender Select
+    |--------------------------------------------------------------------------
+    */
+    const selectGender = value => {
+        setGender(value);
+        setShowGender(false);
     };
 
     /*
@@ -322,10 +402,7 @@ const Profile = () => {
                     text: 'Cancel',
                     style: 'cancel',
                 },
-            ],
-            {
-                cancelable: true,
-            }
+            ]
         );
     };
 
@@ -374,14 +451,15 @@ const Profile = () => {
                         </Text>
                     </View>
 
-                    {/* Profile Picture */}
+                    {/* Profile Image */}
                     <View style={styles.avatarContainer}>
                         <Image
                             source={
                                 image
                                     ? { uri: image }
                                     : {
-                                          uri: 'https://i.pravatar.cc/200?img=12',
+                                          uri:
+                                              'https://i.pravatar.cc/200?img=12',
                                       }
                             }
                             style={styles.avatar}
@@ -399,7 +477,7 @@ const Profile = () => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Form Card */}
+                    {/* Form */}
                     <View style={styles.card}>
                         {/* First Name */}
                         <Text style={styles.label}>
@@ -496,49 +574,206 @@ const Profile = () => {
                             Gender
                         </Text>
 
-                        <View style={styles.inputContainer}>
-                            <Ionicons
-                                name="male-female-outline"
-                                size={20}
-                                color="#666"
-                            />
+                        <TouchableOpacity
+                            style={styles.selectContainer}
+                            onPress={() =>
+                                setShowGender(true)
+                            }
+                        >
+                            <View
+                                style={
+                                    styles.selectLeft
+                                }
+                            >
+                                <Ionicons
+                                    name="male-female-outline"
+                                    size={20}
+                                    color="#666"
+                                />
 
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Gender"
-                                placeholderTextColor="#999"
-                                value={gender}
-                                onChangeText={setGender}
+                                <Text
+                                    style={[
+                                        styles.selectText,
+                                        !gender &&
+                                            styles.placeholderText,
+                                    ]}
+                                >
+                                    {gender ||
+                                        'Select Gender'}
+                                </Text>
+                            </View>
+
+                            <Ionicons
+                                name="chevron-down-outline"
+                                size={20}
+                                color="#777"
                             />
-                        </View>
+                        </TouchableOpacity>
 
                         {/* Date of Birth */}
                         <Text style={styles.label}>
                             Date of Birth
                         </Text>
 
-                        <View style={styles.inputContainer}>
+                        <TouchableOpacity
+                            style={styles.selectContainer}
+                            onPress={() =>
+                                setShowDatePicker(true)
+                            }
+                        >
+                            <View
+                                style={
+                                    styles.selectLeft
+                                }
+                            >
+                                <Ionicons
+                                    name="calendar-outline"
+                                    size={20}
+                                    color="#666"
+                                />
+
+                                <Text
+                                    style={[
+                                        styles.selectText,
+                                        !dob &&
+                                            styles.placeholderText,
+                                    ]}
+                                >
+                                    {dob ||
+                                        'Select Date of Birth'}
+                                </Text>
+                            </View>
+
                             <Ionicons
                                 name="calendar-outline"
                                 size={20}
-                                color="#666"
+                                color="#777"
                             />
+                        </TouchableOpacity>
 
-                            <TextInput
-                                style={styles.input}
-                                placeholder="YYYY-MM-DD"
-                                placeholderTextColor="#999"
-                                value={dob}
-                                onChangeText={setDob}
-                                keyboardType="numbers-and-punctuation"
-                            />
-                        </View>
+                        {/* Android Date Picker */}
+                        {showDatePicker &&
+                            Platform.OS === 'android' && (
+                                <DateTimePicker
+                                    value={getDobDate()}
+                                    mode="date"
+                                    display="calendar"
+                                    maximumDate={
+                                        new Date()
+                                    }
+                                    onChange={
+                                        handleDateChange
+                                    }
+                                />
+                            )}
 
-                        {/* Save Button */}
+                        {/* iOS Date Picker */}
+                        {showDatePicker &&
+                            Platform.OS === 'ios' && (
+                                <Modal
+                                    transparent
+                                    animationType="slide"
+                                    visible={
+                                        showDatePicker
+                                    }
+                                    onRequestClose={() =>
+                                        setShowDatePicker(
+                                            false
+                                        )
+                                    }
+                                >
+                                    <View
+                                        style={
+                                            styles.modalOverlay
+                                        }
+                                    >
+                                        <View
+                                            style={
+                                                styles.dateModal
+                                            }
+                                        >
+                                            <View
+                                                style={
+                                                    styles.dateModalHeader
+                                                }
+                                            >
+                                                <Text
+                                                    style={
+                                                        styles.dateModalTitle
+                                                    }
+                                                >
+                                                    Select Date of Birth
+                                                </Text>
+
+                                                <TouchableOpacity
+                                                    onPress={() =>
+                                                        setShowDatePicker(
+                                                            false
+                                                        )
+                                                    }
+                                                >
+                                                    <Ionicons
+                                                        name="close"
+                                                        size={
+                                                            24
+                                                        }
+                                                        color="#333"
+                                                    />
+                                                </TouchableOpacity>
+                                            </View>
+
+                                            <DateTimePicker
+                                                value={getDobDate()}
+                                                mode="date"
+                                                display="spinner"
+                                                maximumDate={
+                                                    new Date()
+                                                }
+                                                onChange={(
+                                                    event,
+                                                    selectedDate
+                                                ) => {
+                                                    if (
+                                                        selectedDate
+                                                    ) {
+                                                        setDob(
+                                                            formatDate(
+                                                                selectedDate
+                                                            )
+                                                        );
+                                                    }
+                                                }}
+                                            />
+
+                                            <TouchableOpacity
+                                                style={
+                                                    styles.dateDoneButton
+                                                }
+                                                onPress={() =>
+                                                    setShowDatePicker(
+                                                        false
+                                                    )
+                                                }
+                                            >
+                                                <Text
+                                                    style={
+                                                        styles.dateDoneText
+                                                    }
+                                                >
+                                                    Done
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </Modal>
+                            )}
+
+                        {/* Save */}
                         <TouchableOpacity
                             style={[
                                 styles.saveButton,
-                                saving && styles.buttonDisabled,
+                                saving &&
+                                    styles.buttonDisabled,
                             ]}
                             onPress={handleSave}
                             disabled={saving}
@@ -565,6 +800,76 @@ const Profile = () => {
                     </View>
                 </ScrollView>
             </SafeAreaView>
+
+            {/* Gender Modal */}
+            <Modal
+                transparent
+                animationType="fade"
+                visible={showGender}
+                onRequestClose={() =>
+                    setShowGender(false)
+                }
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() =>
+                        setShowGender(false)
+                    }
+                >
+                    <View
+                        style={styles.genderModal}
+                        onStartShouldSetResponder={() =>
+                            true
+                        }
+                    >
+                        <Text
+                            style={
+                                styles.genderModalTitle
+                            }
+                        >
+                            Select Gender
+                        </Text>
+
+                        {genderOptions.map(option => (
+                            <TouchableOpacity
+                                key={option.value}
+                                style={[
+                                    styles.genderOption,
+                                    gender ===
+                                        option.value &&
+                                        styles.selectedGender,
+                                ]}
+                                onPress={() =>
+                                    selectGender(
+                                        option.value
+                                    )
+                                }
+                            >
+                                <Text
+                                    style={[
+                                        styles.genderOptionText,
+                                        gender ===
+                                            option.value &&
+                                            styles.selectedGenderText,
+                                    ]}
+                                >
+                                    {option.label}
+                                </Text>
+
+                                {gender ===
+                                    option.value && (
+                                    <Ionicons
+                                        name="checkmark"
+                                        size={22}
+                                        color="#0C3F80"
+                                    />
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </>
     );
 };
@@ -673,6 +978,34 @@ const styles = StyleSheet.create({
         color: '#222',
     },
 
+    selectContainer: {
+        minHeight: 48,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: '#DDD',
+        backgroundColor: '#FAFAFA',
+        borderRadius: 10,
+        paddingHorizontal: 12,
+    },
+
+    selectLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+
+    selectText: {
+        fontSize: 15,
+        color: '#222',
+        marginLeft: 10,
+    },
+
+    placeholderText: {
+        color: '#999',
+    },
+
     saveButton: {
         backgroundColor: '#0C3F80',
         marginTop: 30,
@@ -692,5 +1025,88 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         marginLeft: 8,
+    },
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        justifyContent: 'flex-end',
+    },
+
+    genderModal: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 20,
+        paddingBottom: 30,
+    },
+
+    genderModalTitle: {
+        fontSize: 19,
+        fontWeight: '700',
+        color: '#222',
+        marginBottom: 15,
+    },
+
+    genderOption: {
+        minHeight: 52,
+        borderRadius: 10,
+        paddingHorizontal: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+
+    selectedGender: {
+        backgroundColor: '#EEF5FF',
+    },
+
+    genderOptionText: {
+        fontSize: 16,
+        color: '#333',
+    },
+
+    selectedGenderText: {
+        color: '#0C3F80',
+        fontWeight: '700',
+    },
+
+    dateModal: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 20,
+        paddingBottom: 30,
+        alignItems: 'center',
+    },
+
+    dateModalHeader: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+
+    dateModalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#222',
+    },
+
+    dateDoneButton: {
+        width: '100%',
+        backgroundColor: '#0C3F80',
+        borderRadius: 10,
+        paddingVertical: 13,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+
+    dateDoneText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '700',
     },
 });

@@ -13,6 +13,8 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
 import axios from "../../services/axios"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const menus = [
   {
     id: 1,
@@ -131,6 +133,69 @@ const Account = ({ navigation }) => {
   useEffect(() => {
     refreshData();
   }, []);
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: logout,
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+
+  const logout = async () => {
+    try {
+      // Call Bagisto logout API
+      await axios.post('/customer/logout');
+
+      // Remove locally stored authentication data
+      await AsyncStorage.multiRemove([
+        'token',
+        'customer',
+      ]);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Logged Out',
+        text2: 'You have been logged out successfully.',
+      });
+
+      // Reset navigation so user cannot go back to Account
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+
+    } catch (error) {
+      console.log(
+        'Logout error:',
+        error?.response?.data || error
+      );
+
+      // Even if API logout fails, clear local session
+      await AsyncStorage.multiRemove([
+        'token',
+        'customer',
+      ]);
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  };
+
   return (
     <>
       <Header />
@@ -223,11 +288,12 @@ const Account = ({ navigation }) => {
 
           {/* Logout */}
 
-          <TouchableOpacity style={styles.logoutBtn}>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             <Ionicons
               name="log-out-outline"
               size={22}
               color="#fff"
+              
             />
 
             <Text style={styles.logoutText}>

@@ -36,72 +36,10 @@ const Tabs = () => {
 
   const [cartCount, setCartCount] = useState(0);
 
-  const loadCart = async () => {
-    const token = await AsyncStorage.getItem('token');
-
-
-    if (token) {
-      try {
-        const cart = await CartService.getServerCart();
-        setCartCount(cart?.items.length);
-      } catch (e) {
-        console.log(e);
-      }
-    } else {
-      try {
-
-        const cart = await CartService.getLocalCart();
-        setCartCount(cart.length);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-  };
-
-  useEffect(() => {
-    loadCart();
-  }, []);
-
-
-useEffect(() => {
-    const updateCartCount = (cart) => {
-        setCartCount(cart.length);
-    };
-    Alert.alert('sfsf','asd')
-    // Listen for cart changes
-    const unsubscribe = CartEvents.subscribe(updateCartCount);
-
-    // Get initial cart
-    loadCart();
-    return unsubscribe;
-}, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadCart();
-
-    }, [])
-  );
-
+  
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('state', () => {
-      loadCart();
-
-      syncCarts();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  const syncCarts = async () => {
-    await CartService.syncCart();
-    const token = await AsyncStorage.getItem('token');
-    if (token) {
-      await CartService.syncCart();
-    }
-  }
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

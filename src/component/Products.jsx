@@ -6,7 +6,8 @@ import {
     FlatList,
     Image,
     TouchableOpacity,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from "../services/axios"
@@ -14,6 +15,9 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CartService from "../services/cart"
 import Toast from 'react-native-toast-message';
+import AuthService from '../services/AuthService';
+// import CartService from '../servicesC';
+
 
 
 const PRIMARY = '#0C3F80';
@@ -22,6 +26,7 @@ const Products = ({ title, filters }) => {
 
     const navigation = useNavigation();
     const [quantity, setQuantity] = useState(1);
+    const [addingProductId, setAddingProductId] = useState(null);
 
     const [products, setProducts] = useState([]);
     const fetchProducts = async () => {
@@ -52,56 +57,178 @@ const Products = ({ title, filters }) => {
         Alert.alert('success', "Saved")
     }
 
+    // const handleAddToCart = async (product) => {
+
+    //     if (addingProductId === product.id) {
+    //         return;
+    //     }
+    //     console.log("start")
+
+    //     // const token = await AsyncStorage.getItem('token');
+
+
+    //     // if (token) {
+    //     const pId = product.id;
+    //      setAddingProductId(product.id);
+
+    //     const resc = await CartService.addServerItem(
+    //         {
+    //             product_id: pId.toString(),
+    //         },
+    //         quantity
+    //     );
+
+    //     // } else {
+    //     //     await CartService.addToLocalCart(
+    //     //         {
+    //     //             product: product,
+    //     //         },
+    //     //         quantity
+    //     //     );
+    //     // }
+
+
+    //     Toast.show({
+    //         type: 'success',
+    //         text1: 'Added to Cart',
+    //         text2: 'Product has been added to your cart 🛒',
+    //     });
+    // };
     const handleAddToCart = async (product) => {
-
-
-        console.log("start")
-
-        const token = await AsyncStorage.getItem('token');
-
-
-        if (token) {
-            const pId = product.id;
-
-            const resc = await CartService.addServerItem(
-                {
-                    product_id: pId.toString(),
-                },
-                quantity
-            );
-
-        } else {
+        // Prevent duplicate clicks
+        const valid = await AsyncStorage.getItem('token');
+        if (!valid) {
             await CartService.addToLocalCart(
                 {
                     product: product,
                 },
                 quantity
             );
+            navigation.replace('Login');
+            return;
         }
 
+        if (addingProductId === product.id) {
+            return;
+        }
 
-        Toast.show({
-            type: 'success',
-            text1: 'Added to Cart',
-            text2: 'Product has been added to your cart 🛒',
-        });
+        try {
+            setAddingProductId(product.id);
+
+            const pId = product.id;
+
+            await CartService.addServerItem(
+                {
+                    product_id: pId.toString(),
+                },
+                quantity
+            );
+
+            Toast.show({
+                type: 'success',
+                text1: 'Added to Cart',
+                text2: 'Product has been added to your cart 🛒',
+            });
+
+        } catch (error) {
+            console.log(
+                'Add to cart error:',
+                error?.response?.data || error
+            );
+
+            Toast.show({
+                type: 'error',
+                text1: 'Failed',
+                text2: 'Unable to add product to cart.',
+            });
+
+        } finally {
+            setAddingProductId(null);
+        }
     };
 
-    const renderProduct = ({ item }) => (
+    const renderProduct = ({ item }) => {
+        const isAdding = addingProductId === item.id;
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                activeOpacity={0.8}
+                onPress={() =>
+                    navigation.navigate('ProductShow', {
+                        id: item.id,
+                    })
+                }
+            >
+                <Image
+                    source={{
+                        uri: item?.images?.[0]?.url,
+                    }}
+                    style={styles.image}
+                />
+
+                <View style={{ paddingHorizontal: 10 }}>
+                    <Text
+                        style={styles.name}
+                        numberOfLines={2}
+                    >
+                        {item.name}
+                    </Text>
+
+                    <View style={styles.priceRow}>
+                        <Text style={styles.price}>
+                            {item.formatted_price}
+                        </Text>
+
+                        <Text style={styles.oldPrice}>
+                            Rs. 1000
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Add to Cart */}
+                <TouchableOpacity
+                    style={[
+                        styles.cartButton,
+                        isAdding && styles.cartButtonLoading,
+                    ]}
+                    onPress={() => handleAddToCart(item)}
+                    disabled={isAdding}
+                    activeOpacity={0.8}
+                >
+                    {isAdding ? (
+                        <>
+                            <ActivityIndicator
+                                size="small"
+                                color="#fff"
+                            />
+
+                            <Text style={styles.cartText}>
+                                Adding...
+                            </Text>
+                        </>
+                    ) : (
+                        <>
+                            <Ionicons
+                                name="cart-outline"
+                                size={18}
+                                color="#fff"
+                            />
+
+                            <Text style={styles.cartText}>
+                                Add
+                            </Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+            </TouchableOpacity>
+        );
+    };
+    const renderProduct1 = ({ item }) => (
         <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ProductShow', {
             id: item.id
         })}>
 
-            {/* <TouchableOpacity style={styles.favorite} onPress={() => addToWishlist(item.id)}>
-                <Ionicons
-                    name={item?.is_saved ? 'heart' : 'heart-outline'}
-                    size={20}
-                    color={item?.is_saved ? '#EF4444' : '#fff'}
-                />
-            </TouchableOpacity> */}
-
-            {/* <Text>{JSON.stringify(item?.images[0]?.url)}</Text> */}
-            {/* Product Image */}
             <Image source={{ uri: item?.images[0]?.url }} style={styles.image} />
 
             {/* Product Name */}
@@ -120,9 +247,43 @@ const Products = ({ title, filters }) => {
             </View>
 
             {/* Add to Cart */}
-            <TouchableOpacity style={styles.cartButton} onPress={() => handleAddToCart(item)}>
+            {/* <TouchableOpacity style={styles.cartButton} onPress={() => handleAddToCart(item)}>
                 <Ionicons name="cart-outline" size={18} color="#fff" />
                 <Text style={styles.cartText}>Add</Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity
+                style={[
+                    styles.cartButton,
+                    isAdding && styles.cartButtonLoading,
+                ]}
+                onPress={() => handleAddToCart(item)}
+                disabled={isAdding}
+                activeOpacity={0.8}
+            >
+                {isAdding ? (
+                    <>
+                        <ActivityIndicator
+                            size="small"
+                            color="#fff"
+                        />
+
+                        <Text style={styles.cartText}>
+                            Adding...
+                        </Text>
+                    </>
+                ) : (
+                    <>
+                        <Ionicons
+                            name="cart-outline"
+                            size={18}
+                            color="#fff"
+                        />
+
+                        <Text style={styles.cartText}>
+                            Add
+                        </Text>
+                    </>
+                )}
             </TouchableOpacity>
         </TouchableOpacity>
     );

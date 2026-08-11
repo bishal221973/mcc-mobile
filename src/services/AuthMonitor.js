@@ -28,7 +28,7 @@ class AuthMonitor {
             if (AppState.currentState === 'active') {
                 this.check();
             }
-        }, 1 * 60 * 500);
+        }, 3 * 60 * 1000);
     }
 
     async check() {

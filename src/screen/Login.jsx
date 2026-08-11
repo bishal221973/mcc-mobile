@@ -2,11 +2,19 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image, Keyb
 import React, { useState } from 'react'
 import axios from "../services/axios"
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import CartService from "../services/cart"
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('');
 
+  const syncCartItem = async () => {
+    try {
+      // Alert.alert('asd','asd')
+      const cart = await CartService.syncCart();
+    } catch (error) {
+      console.log('Load cart error:', error);
+    }
+  };
   const handleLogin = async () => {
     try {
       const response = await axios.post('/customer/login', {
@@ -22,6 +30,7 @@ const Login = ({ navigation }) => {
 
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('customer', JSON.stringify(customer));
+      await syncCartItem();
       navigation.reset({
         index: 0,
         routes: [{ name: 'Drawer' }], // Replace with your home screen name

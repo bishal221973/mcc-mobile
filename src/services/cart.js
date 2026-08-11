@@ -13,7 +13,7 @@ class CartService {
 
     async saveLocalCart(cart) {
         await AsyncStorage.setItem(CART_KEY, JSON.stringify(cart));
-         CartEvents.emit(cart);
+        CartEvents.emit(cart);
     }
 
     async addToLocalCart(product, quantity = 1) {
@@ -40,13 +40,13 @@ class CartService {
 
     async clearLocalCart() {
         await AsyncStorage.removeItem(CART_KEY);
-         CartEvents.emit([]);
+        CartEvents.emit([]);
     }
 
     async getServerCart() {
         try {
-             const token = await AsyncStorage.getItem('token');
-             console.log(token)
+            const token = await AsyncStorage.getItem('token');
+            console.log(token)
             const res = await api.get('/customer/cart');
             console.log("...........................")
             console.log(res)
@@ -62,45 +62,93 @@ class CartService {
 
 
     async addServerItem(productId, quantity) {
-    try {
-        const response = await api.post(
-            `/customer/cart/add/${productId?.product_id}`,
-            {
-                product_id:Number(productId?.product_id),
-                quantity,
-                is_buy_now: 0,
-            }
-        );
+        try {
+            const response = await api.post(
+                `/customer/cart/add/${productId?.product_id}`,
+                {
+                    product_id: Number(productId?.product_id),
+                    quantity,
+                    is_buy_now: 0,
+                }
+            );
 
-         CartEvents.emit(cart);
-        return response.data;
-    } catch (error) {
-        console.log("Status:", error.response?.status);
-        console.log("Data:", error.response?.data);
-        console.log("Message:", error.message);
+            CartEvents.emit(cart);
+            return response.data;
+        } catch (error) {
+            console.log("Status:", error.response?.status);
+            console.log("Data:", error.response?.data);
+            console.log("Message:", error.message);
 
+        }
     }
-}
+
+    // async syncCart() {
+
+    //     const localCart = await this.getLocalCart();
+
+    //     // if (!localCart.length) return;
+    //     for (const item of localCart) {
+    //         try {
+    //             // Alert.alert(item?.product?.id.toString());
+    //             console.log("/////////////////////////////////////")
+    //             console.log(item)
+    //             console.log("/////////////////////////////////////")
+    //             await this.addServerItem(item?.product?.id, item.quantity);
+    //         } catch (e) {
+    //             console.log('Sync failed', item.product_id);
+    //         }
+    //     }
+    //     this.clearLocalCart();
+
+    // }
 
     async syncCart() {
-
         const localCart = await this.getLocalCart();
 
-        if (!localCart.length) return;
+        if (!localCart.length) {
+            return;
+        }
+
+        let allSynced = true;
 
         for (const item of localCart) {
             try {
-                await this.addServerItem(item.product_id, item.quantity);
+                const productId = item?.product?.product?.id.toString();
+
+                console.log("Sync product ID:", productId);
+                console.log("Quantity:", item.quantity);
+
+                if (!productId) {
+                    console.log("Invalid product ID:", item);
+                    allSynced = false;
+                    continue;
+                }
+
+                await this.addServerItem(
+                    {
+                        product_id: productId
+                    },
+                    item.quantity
+                );
+
             } catch (e) {
-                console.log('Sync failed', item.product_id);
+                allSynced = false;
+
+                console.log(
+                    'Sync failed:',
+                    item?.product?.product?.id
+                );
             }
         }
 
+        // Clear local cart ONLY when everything synced
+        if (allSynced) {
+            await this.clearLocalCart();
+        }
     }
-
     async getCart() {
         const token = await AsyncStorage.getItem('token');
-        
+
         if (token) {
             return this.getServerCart();
         }

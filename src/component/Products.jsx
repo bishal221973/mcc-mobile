@@ -7,7 +7,8 @@ import {
     Image,
     TouchableOpacity,
     Alert,
-    ActivityIndicator
+    ActivityIndicator,
+    Dimensions
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from "../services/axios"
@@ -21,6 +22,12 @@ import CartEvents from '../services/CartEvents';
 
 
 const PRIMARY = '#0C3F80';
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_GAP = 12;
+const HORIZONTAL_PADDING = 15;
+
+const CARD_WIDTH =
+  (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CARD_GAP) / 2;
 
 const Products = ({ title, filters }) => {
 
@@ -147,9 +154,7 @@ const Products = ({ title, filters }) => {
                             {item.formatted_price}
                         </Text>
 
-                        <Text style={styles.oldPrice}>
-                            Rs. 1000
-                        </Text>
+                       
                     </View>
                 </View>
 
@@ -303,7 +308,7 @@ const styles = StyleSheet.create({
     },
 
     heading: {
-        fontSize: 21,
+        fontSize: 18,
         fontWeight: '700',
         color: '#111827',
         width: '85%'
@@ -315,15 +320,15 @@ const styles = StyleSheet.create({
     },
 
     list: {
-        paddingHorizontal: 15,
+        // paddingHorizontal: 15,
         paddingBottom: 15,
     },
 
     card: {
-        width: 190,
+        width: CARD_WIDTH,
         backgroundColor: '#fff',
         borderRadius: 12,
-        marginRight: 15,
+        marginRight: CARD_GAP,
         // padding: 10,
         elevation: 4,
         shadowColor: '#000',
@@ -373,13 +378,13 @@ const styles = StyleSheet.create({
 
     image: {
         width: '100%',
-        height: 200,
-        resizeMode: 'cover',
+        height: 150,
+        resizeMode: 'stretch',
         marginTop: 0,
     },
 
     name: {
-        fontSize: 15,
+        fontSize: 13,
         fontWeight: '600',
         color: '#374151',
         marginTop: 10,
@@ -404,7 +409,7 @@ const styles = StyleSheet.create({
     },
 
     price: {
-        fontSize: 17,
+        fontSize: 14,
         fontWeight: '700',
         color: PRIMARY,
     },
@@ -417,7 +422,7 @@ const styles = StyleSheet.create({
     },
 
     cartButton: {
-        marginTop: 12,
+        marginTop: 'auto',
         backgroundColor: PRIMARY,
         borderRadius: 8,
         paddingVertical: 9,

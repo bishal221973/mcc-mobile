@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -6,71 +6,153 @@ import {
     FlatList,
     TouchableOpacity,
     SafeAreaView,
+    Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
-import axios from "../../services/axios"
+import axios from "../../services/axios";
+import AddressSkeleton from "../../component/Loading/AddressSkeleton"
+import AddressForm from "../../component/AddressForm"
+import Toast from 'react-native-toast-message';
+
+
 const Address = ({ navigation }) => {
     const [addresses, setAddresses] = useState([]);
-
-    const deleteAddress = id => {
-        setAddresses(items => items.filter(item => item.id !== id));
+    const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const fetchAddress = async (isRefresh = false) => {
+        try {
+            if (!isRefresh) {
+                setLoading(true);
+            }
+            const response = await axios.get('/customer/addresses');
+            setAddresses(response?.data?.data || []);
+        }
+        catch (error) {
+            console.log('Fetch addresses error:', error);
+        } finally {
+            if (!isRefresh) {
+                setLoading(false);
+            }
+        }
     };
 
-    const fetchAddress=async()=>{
-        const response=await axios.get('/customer/addresses');
-        setAddresses(response?.data?.data);
+    // Pull to refresh
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
 
-    }
+        try {
+            await fetchAddress();
+        } finally {
+            setRefreshing(false);
+        }
+    }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
         fetchAddress();
-    })
+    }, []);
+
+    const deleteAddress = (id) => {
+        Alert.alert(
+            'Delete Address',
+            'Are you sure you want to remove this address?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await axios.delete(`/customer/addresses/${id}`);
+
+                            Toast.show({
+                                type: 'success',
+                                text1: 'Address Removed',
+                                text2: 'Your address has been removed',
+                            });
+
+                            fetchAddress();
+                        } catch (error) {
+                            console.log('Delete address error:', error);
+
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Delete Failed',
+                                text2: 'Unable to remove the address',
+                            });
+                        }
+                    },
+                },
+            ],
+            {
+                cancelable: true,
+            }
+        );
+    };
 
     const renderItem = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.topRow}>
                 <View style={styles.badges}>
                     <View style={styles.typeBadge}>
-                        <Text style={styles.typeText}>{item.first_name} {item.last_name} ({item.company_name})</Text>
+                        <Text style={styles.typeText}>
+                            {item.first_name} {item.last_name}
+                            {item.company_name
+                                ? ` (${item.company_name})`
+                                : ''}
+                        </Text>
                     </View>
 
                     {item.default && (
                         <View style={styles.defaultBadge}>
-                            <Text style={styles.defaultText}>Default</Text>
+                            <Text style={styles.defaultText}>
+                                Default
+                            </Text>
                         </View>
                     )}
                 </View>
             </View>
 
-
-            <Text style={styles.address}>{item.address}</Text>
+            <Text style={styles.address}>
+                {item.address}
+            </Text>
 
             <View style={styles.actionRow}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={styles.editBtn}
                     onPress={() =>
                         navigation.navigate('EditAddress', {
                             address: item,
                         })
-                    }>
+                    }
+                >
                     <Ionicons
                         name="create-outline"
                         size={18}
                         color="#0C3F80"
                     />
-                    <Text style={styles.editText}>Edit</Text>
-                </TouchableOpacity>
+
+                    <Text style={styles.editText}>
+                        Edit
+                    </Text>
+                </TouchableOpacity> */}
 
                 <TouchableOpacity
                     style={styles.deleteBtn}
-                    onPress={() => deleteAddress(item.id)}>
+                    onPress={() => deleteAddress(item.id)}
+                >
                     <Ionicons
                         name="trash-outline"
                         size={18}
                         color="#E53935"
                     />
-                    <Text style={styles.deleteText}>Delete</Text>
+
+                    <Text style={styles.deleteText}>
+                        Delete
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -79,11 +161,8 @@ const Address = ({ navigation }) => {
     return (
         <>
             <Header />
+
             <SafeAreaView style={styles.container}>
-                {/* Header */}
-
-                {/* <Text>{JSON.stringify(addresses)}</Text> */}
-
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>
                         My Addresses
@@ -95,40 +174,31 @@ const Address = ({ navigation }) => {
                     </Text>
                 </View>
 
-                {/* Address List */}
-
-                <FlatList
-                    data={addresses}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id}
-                    contentContainerStyle={{
-                        padding: 15,
-                        paddingBottom: 100,
-                    }}
-                    showsVerticalScrollIndicator={false}
+                {loading ? (
+                    <AddressSkeleton />
+                ) : (
+                    <FlatList
+                        data={addresses}
+                        renderItem={renderItem}
+                        keyExtractor={item => String(item.id)}
+                        refreshing={refreshing}
+                        onRefresh={
+                            async () => {
+                                setRefreshing(true);
+                                try {
+                                    await fetchAddress(true);
+                                } finally {
+                                    setRefreshing(false);
+                                }
+                            }
+                        }
+                        contentContainerStyle={{ padding: 15, paddingBottom: 100, }}
+                        showsVerticalScrollIndicator={false} />
+                )
+                }
+                <AddressForm
+                    onSuccess={fetchAddress}
                 />
-
-                {/* Bottom Button */}
-
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() =>
-                        navigation.navigate('AddAddress')
-                    }>
-                    <Ionicons
-                        name="add-circle-outline"
-                        size={22}
-                        color="#fff"
-                    />
-
-                    <Text style={styles.addText}>
-                        Add New Address
-                    </Text>
-                </TouchableOpacity>
-
-                {/* Floating Button */}
-
-                
             </SafeAreaView>
         </>
     );
@@ -206,19 +276,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 
-    name: {
-        marginTop: 12,
-        fontSize: 17,
-        fontWeight: '700',
-        color: '#222',
-    },
-
-    phone: {
-        marginTop: 6,
-        color: '#555',
-        fontSize: 14,
-    },
-
     address: {
         marginTop: 8,
         color: '#666',
@@ -286,18 +343,5 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginLeft: 8,
         fontSize: 16,
-    },
-
-    fab: {
-        position: 'absolute',
-        right: 22,
-        bottom: 90,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: '#0C3F80',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 8,
     },
 });

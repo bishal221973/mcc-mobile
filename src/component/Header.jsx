@@ -7,22 +7,26 @@ import {
   ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+
 const PRIMARY = '#0C3F80';
 const Header = () => {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.header}>
-        <View style={{flexDirection:'row',gap:10}}>
-            <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        {/* <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
           <Ionicons name="menu" size={30} color="#fff" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <Text style={styles.headerTitle}>MCC</Text>
-        </View>
-
-        <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={26} color="#fff" />
-        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity>
+        <Ionicons name="notifications-outline" size={26} color="#fff" />
+      </TouchableOpacity>
+    </View>
   )
 }
 
@@ -36,13 +40,13 @@ const styles = StyleSheet.create({
 
   header: {
     backgroundColor: PRIMARY,
-    height: 70,
+    height: 80,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     elevation: 5,
-    paddingTop:20
+    paddingTop: 20
   },
 
   headerTitle: {

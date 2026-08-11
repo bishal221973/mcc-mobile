@@ -37,14 +37,14 @@ const OrderShow = ({ route }) => {
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={[styles.tab, activeTab === 'invoice' && styles.activeTab]}
                         onPress={() => setActiveTab('invoice')}
                     >
                         <Text style={[styles.tabText, activeTab === 'invoice' && styles.activeTabText]}>
                             Invoice
                         </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
 
                 {/* Tab Content */}

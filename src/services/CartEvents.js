@@ -1,3 +1,5 @@
+import { Alert } from "react-native";
+
 const listeners = new Set();
 
 const CartEvents = {

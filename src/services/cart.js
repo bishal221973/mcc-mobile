@@ -54,7 +54,7 @@ class CartService {
 
             return res.data.data;
         } catch (error) {
-            console.log("/////////////////////////////////////")
+            console.log("////////////////////////////////////////////")
             console.log(error)
             console.log("/////////////////////////////////////")
         }

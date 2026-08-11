@@ -24,7 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import CartService from "../services/CartEvents"
+import CartService from "../services/cart"
 
 
 const Tab = createBottomTabNavigator()
@@ -36,10 +36,59 @@ const Tabs = () => {
 
   const [cartCount, setCartCount] = useState(0);
 
-  
+
   const navigation = useNavigation();
 
-  
+  const loadCart = async (showLoading = false) => {
+    if (showLoading) {
+      setLoading(true);
+    }
+    
+    const token = await AsyncStorage.getItem('token');
+    
+    try {
+      if (token) {
+        const cart = await CartService.getServerCart();
+
+        console.log("////////////////////////////////")
+        console.log(cart)
+        console.log("////////////////////////////////")
+        
+        // Alert.alert('sdasd', cart.items.length.toString())
+        setCartCount(cart?.items?.length || []);
+      } else {
+        const cart = await CartService.getLocalCart();
+
+      }
+    } catch (error) {
+      console.log('Cart error:', error);
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = CartEvents.subscribe((cart) => {
+      console.log('Cart event received:', cart);
+      
+      // const count = cart.reduce(
+      //   (total, item) => total + Number(item.quantity || 0),
+      //   0
+      // );
+
+      loadCart();
+      // setCartCount(count);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(()=>{
+    loadCart();
+  })
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

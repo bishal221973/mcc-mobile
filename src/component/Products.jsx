@@ -17,7 +17,7 @@ import CartService from "../services/cart"
 import Toast from 'react-native-toast-message';
 import AuthService from '../services/AuthService';
 // import CartService from '../servicesC';
-
+import CartEvents from '../services/CartEvents';
 
 
 const PRIMARY = '#0C3F80';
@@ -57,43 +57,6 @@ const Products = ({ title, filters }) => {
         Alert.alert('success', "Saved")
     }
 
-    // const handleAddToCart = async (product) => {
-
-    //     if (addingProductId === product.id) {
-    //         return;
-    //     }
-    //     console.log("start")
-
-    //     // const token = await AsyncStorage.getItem('token');
-
-
-    //     // if (token) {
-    //     const pId = product.id;
-    //      setAddingProductId(product.id);
-
-    //     const resc = await CartService.addServerItem(
-    //         {
-    //             product_id: pId.toString(),
-    //         },
-    //         quantity
-    //     );
-
-    //     // } else {
-    //     //     await CartService.addToLocalCart(
-    //     //         {
-    //     //             product: product,
-    //     //         },
-    //     //         quantity
-    //     //     );
-    //     // }
-
-
-    //     Toast.show({
-    //         type: 'success',
-    //         text1: 'Added to Cart',
-    //         text2: 'Product has been added to your cart 🛒',
-    //     });
-    // };
     const handleAddToCart = async (product) => {
         // Prevent duplicate clicks
         const valid = await AsyncStorage.getItem('token');
@@ -113,6 +76,7 @@ const Products = ({ title, filters }) => {
         }
 
         try {
+
             setAddingProductId(product.id);
 
             const pId = product.id;
@@ -123,12 +87,15 @@ const Products = ({ title, filters }) => {
                 },
                 quantity
             );
-
             Toast.show({
                 type: 'success',
                 text1: 'Added to Cart',
                 text2: 'Product has been added to your cart 🛒',
             });
+
+
+
+            CartEvents.emit([]);
 
         } catch (error) {
             console.log(

@@ -25,6 +25,8 @@ import ShippingMethod from "../../component/Checkout/ShippingMethod"
 import Payment from "../../component/Checkout/Payment"
 import CheckoutSkeleton from '../../component/Loading/CheckoutSkeleton';
 
+import CartEvents from '../../services/CartEvents'
+
 const esewaIcon = require('../../../assets/images/esewa.png');
 const codIcon = require('../../../assets/images/cod.png');
 const creditIcon = require('../../../assets/images/credit.png');
@@ -411,6 +413,8 @@ const Checkout = ({ navigation }) => {
             // Hide loading and show success modal
             setPlacingOrder(false);
             setOrderSuccess(true);
+
+             CartEvents.emit([]);
 
         } catch (error) {
             console.error(

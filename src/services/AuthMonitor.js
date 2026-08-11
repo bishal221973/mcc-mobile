@@ -43,8 +43,7 @@ class AuthMonitor {
         try {
             const valid = await AuthService.isLoggedIn();
             if (!valid) {
-                // Alert.alert("ss",valid ? 'asda' : 'l')
-                await AsyncStorage.removeItem('token');
+                // await AsyncStorage.removeItem('token');
             }else{
 
             }

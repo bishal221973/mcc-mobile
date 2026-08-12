@@ -15,6 +15,7 @@ import Header from '../../component/Header';
 import axios from "../../services/axios"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Amounts from "../../component/Amounts"
+import AccountInfo from "../../component/AccountInfo"
 const menus = [
   {
     id: 1,
@@ -64,8 +65,8 @@ const Account = ({ navigation }) => {
     setCustomer(response?.data?.data);
   }
 
-  const [total,setTotal]=useState(0)
-  const [totalRevenue,setTotalRevenue]=useState(0)
+  const [total, setTotal] = useState(0)
+  const [totalRevenue, setTotalRevenue] = useState(0)
 
 
   const fetchOrders = async () => {
@@ -170,24 +171,7 @@ const Account = ({ navigation }) => {
     refreshData();
   }, []);
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: logout,
-        },
-      ],
-      { cancelable: true }
-    );
-  };
+  
 
 
   const logout = async () => {
@@ -250,29 +234,8 @@ const Account = ({ navigation }) => {
         >
           {/* Profile Card */}
           {/* <Text>{JSON.stringify(addresses)}</Text> */}
-
-          <View style={styles.profileCard}>
-            <Image
-              source={{
-                uri: 'https://i.pravatar.cc/150?img=12',
-              }}
-              style={styles.avatar}
-            />
-
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{customer.first_name} {customer.last_name}</Text>
-
-              <Text style={styles.email}>
-                {customer.email}
-              </Text>
-
-              <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.editBtn}>
-                <Text style={styles.editText}>
-                  Edit Profile
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <AccountInfo customer={customer}/>
+          
 
           {/* <Text>{JSON.stringify(transactions)}</Text> */}
 
@@ -297,7 +260,7 @@ const Account = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <Amounts totalAmount={total} paidAmount={totalRevenue}/>
+          <Amounts totalAmount={total} paidAmount={totalRevenue} />
 
           {/* Menu */}
 
@@ -330,7 +293,7 @@ const Account = ({ navigation }) => {
 
           {/* Logout */}
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          {/* <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             <Ionicons
               name="log-out-outline"
               size={22}
@@ -341,7 +304,7 @@ const Account = ({ navigation }) => {
             <Text style={styles.logoutText}>
               Logout
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -358,53 +321,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F6F9',
   },
 
-  profileCard: {
-    backgroundColor: '#fff',
-    margin: 15,
-    borderRadius: 15,
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 3,
-  },
+  
+  
 
-  avatar: {
-    width: 75,
-    height: 75,
-    borderRadius: 40,
-    marginRight: 15,
-  },
-
-  name: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#222',
-  },
-
-  email: {
-    color: '#777',
-    marginTop: 5,
-  },
-
-  editBtn: {
-    marginTop: 10,
-    backgroundColor: '#0C3F80',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-  },
-
-  editText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-
+  
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginHorizontal: 15,
-    marginBottom: 15,
+    // marginHorizontal: 15,
+    marginBottom: 8,
   },
 
   statCard: {
@@ -429,7 +354,7 @@ const styles = StyleSheet.create({
 
   menuContainer: {
     backgroundColor: '#fff',
-    marginHorizontal: 15,
+    marginHorizontal: 8,
     borderRadius: 15,
     overflow: 'hidden',
   },
@@ -455,20 +380,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  logoutBtn: {
-    margin: 20,
-    backgroundColor: '#E53935',
-    padding: 16,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-
-  logoutText: {
-    color: '#fff',
-    marginLeft: 10,
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  
 });

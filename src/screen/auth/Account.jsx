@@ -14,7 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
 import axios from "../../services/axios"
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import Amounts from "../../component/Amounts"
 const menus = [
   {
     id: 1,
@@ -56,6 +56,7 @@ const Account = ({ navigation }) => {
   const [wishLists, setWishLists] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [transactions, setTransactions] = useState([]);
 
 
   const fetchProfile = async () => {
@@ -63,6 +64,8 @@ const Account = ({ navigation }) => {
     setCustomer(response?.data?.data);
   }
 
+  const [total,setTotal]=useState(0)
+  const [totalRevenue,setTotalRevenue]=useState(0)
 
 
   const fetchOrders = async () => {
@@ -71,6 +74,38 @@ const Account = ({ navigation }) => {
       // console.log('Orders response:', res.data);
       // Alert.alert('success',"Hello");
       setOrders(res.data?.data || []);
+
+      const data = res.data.data;
+
+      const total = data.reduce((sum, item) => {
+        return sum + Number(item?.grand_total || 0);
+      }, 0);
+      const totalPaid = data.reduce((sum, item) => {
+        return sum + Number(item?.base_grand_total_invoiced || 0);
+      }, 0);
+      setTotal(total)
+      setTotalRevenue(totalPaid)
+    } catch (error) {
+      console.log(
+        'Failed to fetch order:',
+        error?.response?.data || error.message
+      );
+    }
+  };
+
+  const fetchRevenue = async () => {
+    try {
+      const res = await axios.get('/customer/transactions');
+      // console.log('Orders response:', res.data);
+      // Alert.alert('success',"Hello");
+      setTransactions(res.data.data || []);
+
+      // const data = res.data.data;
+
+      // const total = data.reduce((sum, item) => {
+      //   return sum + Number(item?.grand_total || 0);
+      // }, 0);
+      // setTotal(total)
     } catch (error) {
       console.log(
         'Failed to fetch order:',
@@ -119,6 +154,7 @@ const Account = ({ navigation }) => {
         fetchOrders(),
         fetchWishlist(),
         fetchAddress(),
+        // fetchRevenue(),
       ]);
     } catch (error) {
       console.log(
@@ -238,6 +274,10 @@ const Account = ({ navigation }) => {
             </View>
           </View>
 
+          {/* <Text>{JSON.stringify(transactions)}</Text> */}
+
+
+
           {/* Stats */}
 
           <View style={styles.statsContainer}>
@@ -251,11 +291,13 @@ const Account = ({ navigation }) => {
               <Text style={styles.statLabel}>Wishlist</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={()=>navigation.navigate('Address')} style={styles.statCard}>
+            <TouchableOpacity onPress={() => navigation.navigate('Address')} style={styles.statCard}>
               <Text style={styles.statValue}>{addresses.length}</Text>
               <Text style={styles.statLabel}>Addresses</Text>
             </TouchableOpacity>
           </View>
+
+          <Amounts totalAmount={total} paidAmount={totalRevenue}/>
 
           {/* Menu */}
 
@@ -293,7 +335,7 @@ const Account = ({ navigation }) => {
               name="log-out-outline"
               size={22}
               color="#fff"
-              
+
             />
 
             <Text style={styles.logoutText}>

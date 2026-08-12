@@ -68,7 +68,7 @@ const OrderInfo = ({ order, fetchOrders }) => {
             <View style={{ paddingHorizontal: 10 }}>
                 <View style={styles.row}>
                     <Text style={styles.label}>Order ID</Text>
-                    <Text style={styles.valueId}>#{order?.id || 'N/A'}</Text>
+                    <Text style={styles.valueId}>#MCC{String(order.id).padStart(7, '0')}</Text>
                 </View>
 
                 <View style={styles.row}>

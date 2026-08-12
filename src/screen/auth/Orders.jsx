@@ -48,18 +48,6 @@ const Orders = ({ navigation }) => {
         }
     };
 
-    // const getStatusStyles = (status) => {
-    //     switch (status) {
-    //         case 'Delivered':
-    //             return { text: '#2E7D32', bg: '#E8F5E9' };
-    //         case 'Processing':
-    //             return { text: '#EF6C00', bg: '#FFF3E0' };
-    //         case 'Cancelled':
-    //             return { text: '#C62828', bg: '#FFEBEE' };
-    //         default:
-    //             return { text: '#616161', bg: '#F5F5F5' };
-    //     }
-    // };
     const getStatusStyles = (status) => {
         const normalizedStatus = String(status || '').trim().toLowerCase();
 
@@ -84,6 +72,98 @@ const Orders = ({ navigation }) => {
     const renderItem = ({ item }) => {
         const statusStyle = getStatusStyles(item.status);
 
+        const totalAmount = Number(item?.grand_total || 0);
+
+        const paidAmount = Number(
+            item?.grand_total_invoiced || 0
+        );
+
+        const dueAmount = Math.max(
+            totalAmount - paidAmount,
+            0
+        );
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() =>
+                    navigation.navigate('OrderShow', {
+                        order: item,
+                    })
+                }
+            >
+                <View style={styles.topRow}>
+                    <View>
+                        <Text style={styles.orderId}>
+                            Order #MCC{String(item.id).padStart(7, '0')}
+                        </Text>
+
+                        <Text style={styles.date}>
+                            {item.created_at}
+                        </Text>
+                    </View>
+
+                    <View
+                        style={[
+                            styles.statusBadge,
+                            {
+                                backgroundColor: statusStyle.bg,
+                            },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.statusText,
+                                {
+                                    color: statusStyle.text,
+                                },
+                            ]}
+                        >
+                            {item.status}
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Amount Summary */}
+                <View style={styles.amountRow}>
+
+                    <View style={styles.amountItem}>
+                        <Text style={styles.amountLabel}>
+                            Total
+                        </Text>
+
+                        <Text style={styles.totalAmount}>
+                            Rs. {totalAmount.toLocaleString()}
+                        </Text>
+                    </View>
+
+                    <View style={styles.amountItem}>
+                        <Text style={styles.amountLabel}>
+                            Paid
+                        </Text>
+
+                        <Text style={styles.paidAmount}>
+                            Rs. {paidAmount.toLocaleString()}
+                        </Text>
+                    </View>
+
+                    <View style={styles.amountItem}>
+                        <Text style={styles.amountLabel}>
+                            Due
+                        </Text>
+
+                        <Text style={styles.dueAmount}>
+                            Rs. {dueAmount.toLocaleString()}
+                        </Text>
+                    </View>
+
+                </View>
+            </TouchableOpacity>
+        );
+    };
+    const renderItem1 = ({ item }) => {
+        const statusStyle = getStatusStyles(item.status);
+
         const itemImage =
             item?.items?.[0]?.product?.image_url ||
             'https://placeholder.com';
@@ -103,7 +183,7 @@ const Orders = ({ navigation }) => {
                 <View style={styles.topRow}>
                     <View>
                         <Text style={styles.orderId}>
-                            Order #{item.id}
+                            Order #MCC{String(item.id).padStart(7, '0')}
                         </Text>
 
                         <Text style={styles.date}>
@@ -216,7 +296,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#EEEEEE',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems:'center',
+        alignItems: 'center',
         // paddingLeft:10
         paddingHorizontal: 20,
     },
@@ -237,7 +317,7 @@ const styles = StyleSheet.create({
         color: '#666666',
         marginTop: 4,
         fontWeight: '500',
-        textAlign:'right'
+        textAlign: 'right'
     },
 
     card: {
@@ -384,5 +464,40 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
         color: '#0C3F80',
+    },
+    amountRow: {
+        flexDirection: 'row',
+        marginTop: 5,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#F0F0F0',
+    },
+
+    amountItem: {
+        flex: 1,
+    },
+
+    amountLabel: {
+        fontSize: 11,
+        color: '#888',
+        marginBottom: 4,
+    },
+
+    totalAmount: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#0C3F80',
+    },
+
+    paidAmount: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#2E7D32',
+    },
+
+    dueAmount: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#C62828',
     },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -7,103 +7,216 @@ import {
     Image,
     TouchableOpacity,
     SafeAreaView,
+    Alert,
+    ActivityIndicator
 } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../../component/Header';
-const Wishlist = ({ navigation }) => {
-    const [wishlist, setWishlist] = useState([
-        {
-            id: '1',
-            name: 'Apple iPhone 15 Pro',
-            category: 'Smartphone',
-            price: '$1,799',
-            oldPrice: '$1,999',
-            discount: '10% OFF',
-            rating: '4.8',
-            stock: 'In Stock',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: '2',
-            name: 'Nike Air Max',
-            category: 'Shoes',
-            price: '$249',
-            oldPrice: '$299',
-            discount: '17% OFF',
-            rating: '4.6',
-            stock: 'In Stock',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: '3',
-            name: 'Samsung Galaxy Watch',
-            category: 'Watch',
-            price: '$599',
-            oldPrice: '$699',
-            discount: '14% OFF',
-            rating: '4.7',
-            stock: 'Only 2 Left',
-            image: require('../../../assets/products/3.webp'),
-        },
-        {
-            id: '4',
-            name: 'Sony Headphones',
-            category: 'Accessories',
-            price: '$199',
-            oldPrice: '$249',
-            discount: '20% OFF',
-            rating: '4.9',
-            stock: 'In Stock',
-            image: require('../../../assets/products/3.webp'),
-        },
-    ]);
+import axios from '../../services/axios';
+import WishlistSkeleton from '../../component/Loading/WishlistSkeleton';
+import CartEvents from '../../services/CartEvents';
 
-    const removeItem = id => {
-        setWishlist(items => items.filter(item => item.id !== id));
+const Wishlist = ({ navigation }) => {
+    const [wishlist, setWishlist] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [moving, setMoving] = useState(null);
+
+    /**
+     * Fetch wishlist
+     *
+     * showLoader = true
+     * Only used for initial loading.
+     */
+    const fetchData = async (showLoader = false) => {
+        try {
+            if (showLoader) {
+                setLoading(true);
+            }
+
+            const response = await axios.get('/customer/wishlist');
+
+            setWishlist(response?.data?.data || []);
+        } catch (error) {
+            console.error(
+                'Wishlist fetch error:',
+                error?.response?.data || error.message
+            );
+        } finally {
+            if (showLoader) {
+                setLoading(false);
+            }
+        }
     };
 
-    const renderItem = ({ item }) => (
-        <View style={styles.card}>
-            <TouchableOpacity
-                style={styles.removeBtn}
-                onPress={() => removeItem(item.id)}>
-                <Ionicons name="heart" size={20} color="#E53935" />
-            </TouchableOpacity>
+    /**
+     * Initial load
+     */
+    useEffect(() => {
+        fetchData(true);
+    }, []);
 
-            <Image source={item.image} style={styles.image} />
+    /**
+     * Pull to refresh
+     */
+    const onRefresh = async () => {
+        setRefreshing(true);
 
-            <Text numberOfLines={2} style={styles.name}>
-                {item.name}
-            </Text>
+        try {
+            await fetchData(false);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
-            <Text style={styles.category}>{item.category}</Text>
+    /**
+     * Remove wishlist item
+     */
+    const removeItem = (id) => {
+        Alert.alert(
+            'Remove from Wishlist',
+            'Are you sure you want to remove this item from your wishlist?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Remove',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await axios.post(`/customer/wishlist/${id}`);
 
-            <View style={styles.ratingRow}>
-                <Ionicons name="star" size={14} color="#FFC107" />
-                <Text style={styles.rating}>{item.rating}</Text>
+                            await fetchData(false);
+                        } catch (error) {
+                            console.error(
+                                'Remove wishlist error:',
+                                error?.response?.data || error.message
+                            );
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    /**
+     * Move wishlist product to cart
+     */
+    const moveToCart = async (productId, quantity = 1) => {
+        try {
+            setMoving(productId);
+            await axios.post(
+                `/customer/wishlist/${productId}/move-to-cart?quantity=${quantity}`
+            );
+
+            await fetchData(false);
+        } catch (error) {
+            console.error(
+                'Move to cart error:',
+                error?.response?.data || error.message
+            );
+        } finally {
+            setMoving(null);
+            CartEvents.emit([]);
+        }
+    };
+
+    /**
+     * Wishlist item
+     */
+    const renderItem = ({ item }) => {
+        const product = item?.product;
+        const loading = item?.product?.id === moving;
+
+        return (
+            <View style={styles.card}>
+
+                {/* Remove Wishlist */}
+                <TouchableOpacity
+                    style={styles.removeBtn}
+                    onPress={() => removeItem(product?.id)}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons
+                        name="heart"
+                        size={20}
+                        color="#E53935"
+                    />
+                </TouchableOpacity>
+
+                {/* Product Image */}
+                <Image
+                    source={{
+                        uri: product?.base_image?.small_image_url,
+                    }}
+                    style={styles.image}
+                />
+
+                {/* Product Name */}
+                <Text
+                    numberOfLines={2}
+                    style={styles.name}
+                >
+                    {product?.name}
+                </Text>
+
+                {/* Price */}
+                <View style={styles.priceRow}>
+                    <Text style={styles.price}>
+                        {product?.formatted_price}
+                    </Text>
+                </View>
+
+                {/* Move To Cart */}
+                <TouchableOpacity
+                    style={styles.cartButton}
+                    onPress={() => moveToCart(product?.id)}
+                    activeOpacity={0.8}
+                >
+                    {loading ? (
+                        <>
+                            <ActivityIndicator
+                                size="small"
+                                color="#fff"
+                            />
+
+                            <Text style={styles.cartText}>
+                                Moving...
+                            </Text>
+                        </>
+                    ) : (
+                        <>
+                            <Ionicons
+                                name="cart-outline"
+                                size={18}
+                                color="#fff"
+                            />
+
+                            <Text style={styles.cartText}>
+                                Move to Cart
+                            </Text>
+                        </>
+                    )}
+
+                </TouchableOpacity>
+
             </View>
-
-            <View style={styles.priceRow}>
-                <Text style={styles.price}>{item.price}</Text>
-                <Text style={styles.oldPrice}>{item.oldPrice}</Text>
-            </View>
-
-            <Text style={styles.discount}>{item.discount}</Text>
-
-            <Text style={styles.stock}>{item.stock}</Text>
-
-            <TouchableOpacity style={styles.cartButton}>
-                <Ionicons name="cart-outline" size={18} color="#fff" />
-                <Text style={styles.cartText}>Move to Cart</Text>
-            </TouchableOpacity>
-        </View>
-    );
+        );
+    };
 
     return (
         <>
             <Header />
+
             <SafeAreaView style={styles.container}>
-                <View style={[styles.headerRow]}>
+
+                {/* Header */}
+                <View style={styles.headerRow}>
+
+                    {/* Back */}
                     <TouchableOpacity
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
@@ -119,23 +232,60 @@ const Wishlist = ({ navigation }) => {
                             Back
                         </Text>
                     </TouchableOpacity>
+
+                    {/* Title */}
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>My Wishlists</Text>
+                        <Text style={styles.headerTitle}>
+                            My Wishlists
+                        </Text>
+
                         <Text style={styles.headerSubtitle}>
-                            {wishlist.length} {wishlist.length === 1 ? 'Wishlist' : 'Wishlists'}
+                            {wishlist.length}{' '}
+                            {wishlist.length === 1
+                                ? 'Wishlist'
+                                : 'Wishlists'}
                         </Text>
                     </View>
+
                 </View>
 
-                <FlatList
-                    data={wishlist}
-                    keyExtractor={item => item.id}
-                    renderItem={renderItem}
-                    numColumns={2}
-                    columnWrapperStyle={{ justifyContent: 'space-between' }}
-                    contentContainerStyle={styles.list}
-                    showsVerticalScrollIndicator={false}
-                />
+                {/* Content */}
+                {loading ? (
+                    <WishlistSkeleton />
+                ) : (
+                    <FlatList
+                        data={wishlist}
+                        keyExtractor={(item) =>
+                            item?.id?.toString()
+                        }
+                        renderItem={renderItem}
+                        numColumns={2}
+                        columnWrapperStyle={styles.columnWrapper}
+                        contentContainerStyle={styles.list}
+                        showsVerticalScrollIndicator={false}
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        ListEmptyComponent={
+                            <View style={styles.emptyContainer}>
+                                <Ionicons
+                                    name="heart-outline"
+                                    size={60}
+                                    color="#BDBDBD"
+                                />
+
+                                <Text style={styles.emptyTitle}>
+                                    Your Wishlist is Empty
+                                </Text>
+
+                                <Text style={styles.emptyText}>
+                                    Add products to your wishlist
+                                    and they will appear here.
+                                </Text>
+                            </View>
+                        }
+                    />
+                )}
+
             </SafeAreaView>
         </>
     );
@@ -149,18 +299,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F6FA',
     },
 
+    /* Header */
+
     headerRow: {
         backgroundColor: '#fff',
-        // paddingHorizontal: 20,
-        // paddingVertical: 18,
         borderBottomWidth: 1,
         borderBottomColor: '#EEEEEE',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        // paddingLeft:10
         paddingHorizontal: 20,
+        marginBottom: 10,
     },
+
     header: {
         backgroundColor: '#fff',
         paddingVertical: 10,
@@ -173,23 +324,46 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#222',
     },
+
     headerSubtitle: {
         fontSize: 13,
         color: '#666666',
         marginTop: 4,
         fontWeight: '500',
-        textAlign: 'right'
+        textAlign: 'right',
     },
 
-    headerSub: {
-        color: '#777',
-        marginTop: 2,
+    /* Back Button */
+
+    backButton: {
+        height: 42,
+        paddingHorizontal: 14,
+        borderRadius: 14,
+        backgroundColor: '#F1F5FA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
+
+    backText: {
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0C3F80',
+    },
+
+    /* List */
 
     list: {
         paddingHorizontal: 10,
         paddingBottom: 20,
     },
+
+    columnWrapper: {
+        justifyContent: 'space-between',
+    },
+
+    /* Product Card */
 
     card: {
         width: '48%',
@@ -215,29 +389,13 @@ const styles = StyleSheet.create({
     },
 
     name: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '600',
         color: '#222',
-        minHeight: 40,
+        minHeight: 38,
     },
 
-    category: {
-        fontSize: 12,
-        color: '#888',
-        marginTop: 2,
-    },
-
-    ratingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 5,
-    },
-
-    rating: {
-        marginLeft: 4,
-        color: '#555',
-        fontSize: 12,
-    },
+    /* Price */
 
     priceRow: {
         flexDirection: 'row',
@@ -246,30 +404,12 @@ const styles = StyleSheet.create({
     },
 
     price: {
-        fontSize: 17,
+        fontSize: 15,
         fontWeight: '700',
         color: '#0C3F80',
     },
 
-    oldPrice: {
-        marginLeft: 6,
-        color: '#999',
-        fontSize: 12,
-        textDecorationLine: 'line-through',
-    },
-
-    discount: {
-        color: '#28a745',
-        fontWeight: '600',
-        fontSize: 12,
-        marginTop: 3,
-    },
-
-    stock: {
-        color: '#ff9800',
-        fontSize: 12,
-        marginTop: 5,
-    },
+    /* Cart Button */
 
     cartButton: {
         marginTop: 10,
@@ -287,20 +427,29 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         fontSize: 13,
     },
-    backButton: {
-        height: 42,
-        paddingHorizontal: 14,
-        borderRadius: 14,
-        backgroundColor: '#F1F5FA',
-        flexDirection: 'row',
+
+    /* Empty Wishlist */
+
+    emptyContainer: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        paddingHorizontal: 30,
+        paddingTop: 100,
     },
 
-    backText: {
-        marginLeft: 4,
-        fontSize: 14,
+    emptyTitle: {
+        marginTop: 15,
+        fontSize: 18,
         fontWeight: '700',
-        color: '#0C3F80',
+        color: '#333',
+    },
+
+    emptyText: {
+        marginTop: 6,
+        fontSize: 14,
+        color: '#777',
+        textAlign: 'center',
+        lineHeight: 20,
     },
 });

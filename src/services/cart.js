@@ -155,6 +155,21 @@ class CartService {
 
         return this.getLocalCart();
     }
+
+    async clearAllCart(){
+        try {
+            const response = await api.delete(
+                `/customer/cart/remove`
+            );
+
+            return response.data;
+        } catch (error) {
+            console.log("Status:", error.response?.status);
+            console.log("Data:", error.response?.data);
+            console.log("Message:", error.message);
+
+        }   
+    }
 }
 
 export default new CartService();

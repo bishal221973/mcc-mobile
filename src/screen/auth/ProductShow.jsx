@@ -8,6 +8,7 @@ import {
     ScrollView,
     Alert,
     RefreshControl,
+    ActivityIndicator
 } from 'react-native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -22,7 +23,8 @@ import CartService from "../../services/cart"
 import Toast from 'react-native-toast-message';
 import Header from '../../component/Header';
 import ProductInfoSkeleton from '../../component/Loading/ProductInfoSkeleton';
-const ProductShow = ({ route }) => {
+import CartEvents from '../../services/CartEvents';
+const ProductShow = ({ route, navigation }) => {
 
     const { id } = route.params;
 
@@ -31,7 +33,7 @@ const ProductShow = ({ route }) => {
     const [product, setProduct] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [productLoading, setProductLoading] = useState(true);
-
+    const [loading, setLoading] = useState(false);
     const fetchProduct = async () => {
         try {
             setProductLoading(true);
@@ -58,12 +60,11 @@ const ProductShow = ({ route }) => {
     const handleAddToCart = async () => {
 
 
-        console.log("start")
-
         const token = await AsyncStorage.getItem('token');
 
 
         if (token) {
+            setLoading(true);
             const pId = product.id;
 
             const resc = await CartService.addServerItem(
@@ -72,15 +73,18 @@ const ProductShow = ({ route }) => {
                 },
                 quantity
             );
-
+            setLoading(false);
         } else {
+
             await CartService.addToLocalCart(
                 {
                     product: product,
                 },
                 quantity
             );
+            navigation.replace('Login');
         }
+        CartEvents.emit([]);
 
 
         Toast.show({
@@ -91,9 +95,41 @@ const ProductShow = ({ route }) => {
     };
 
 
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
+
+        const token = await AsyncStorage.getItem('token');
 
 
+        if (token) {
+            const pId = product.id;
+
+            await CartService.clearAllCart();
+
+            const resc = await CartService.addServerItem(
+                {
+                    product_id: pId.toString(),
+                },
+                quantity
+            );
+
+            navigation.navigate('Checkout')
+
+        } else {
+            await CartService.addToLocalCart(
+                {
+                    product: product,
+                },
+                quantity
+            );
+            navigation.replace('Login');
+        }
+
+
+        Toast.show({
+            type: 'success',
+            text1: 'Added to Cart',
+            text2: 'Product has been added to your cart 🛒',
+        });
 
     };
 
@@ -119,7 +155,7 @@ const ProductShow = ({ route }) => {
         }
     };
 
- 
+
 
     return (
 
@@ -309,13 +345,20 @@ const ProductShow = ({ route }) => {
                     <TouchableOpacity
                         style={styles.cartButton}
                         onPress={handleAddToCart}
+                         disabled={loading}
                     >
-
-                        <Ionicons
-                            name="bag-handle-outline"
-                            size={22}
-                            color="#007AFF"
-                        />
+                        {loading ? (
+                            <ActivityIndicator
+                                size="small"
+                                color="#007AFF"
+                            />
+                        ) : (
+                            <Ionicons
+                                name="bag-handle-outline"
+                                size={22}
+                                color="#007AFF"
+                            />
+                        )}
 
                     </TouchableOpacity>
 
@@ -325,6 +368,7 @@ const ProductShow = ({ route }) => {
                     <TouchableOpacity
                         style={styles.buyNowButton}
                         onPress={handleBuyNow}
+                         disabled={loading}
                     >
 
                         <Text style={styles.buyNowButtonText}>

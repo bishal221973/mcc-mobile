@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-native'
 import React from 'react'
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import { useNavigation } from '@react-navigation/native';
 const AccountInfo = ({ customer }) => {
+
+    const navigation=useNavigation();
 
     const handleLogout = () => {
         Alert.alert(

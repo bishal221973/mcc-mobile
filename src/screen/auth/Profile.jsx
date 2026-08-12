@@ -27,7 +27,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import axios from '../../services/axios';
 
-const Profile = () => {
+const Profile = ({navigation}) => {
     const [customer, setCustomer] = useState(null);
 
     const [firstName, setFirstName] = useState('');
@@ -275,6 +275,7 @@ const Profile = () => {
                 error?.response?.data?.error ||
                 'Unable to update your profile.';
 
+
             if (errors) {
                 const firstError = Object.values(errors)?.[0];
 
@@ -440,41 +441,29 @@ const Profile = () => {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.scrollContent}
                 >
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <Text style={styles.headerTitle}>
-                            My Profile
-                        </Text>
 
-                        <Text style={styles.headerSubtitle}>
-                            Update your personal information
-                        </Text>
-                    </View>
-
-                    {/* Profile Image */}
-                    <View style={styles.avatarContainer}>
-                        <Image
-                            source={
-                                image
-                                    ? { uri: image }
-                                    : {
-                                          uri:
-                                              'https://i.pravatar.cc/200?img=12',
-                                      }
-                            }
-                            style={styles.avatar}
-                        />
-
+                    <View style={[styles.headerRow]}>
                         <TouchableOpacity
-                            onPress={choosePhoto}
-                            style={styles.cameraButton}
+                            style={styles.backButton}
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
                         >
                             <Ionicons
-                                name="camera"
-                                size={18}
-                                color="#fff"
+                                name="chevron-back"
+                                size={20}
+                                color="#0C3F80"
                             />
+
+                            <Text style={styles.backText}>
+                                Back
+                            </Text>
                         </TouchableOpacity>
+                        <View style={styles.header}>
+                            <Text style={styles.headerTitle}>My Profile</Text>
+                            <Text style={styles.headerSubtitle}>
+                                Update personal information
+                            </Text>
+                        </View>
                     </View>
 
                     {/* Form */}
@@ -595,7 +584,7 @@ const Profile = () => {
                                     style={[
                                         styles.selectText,
                                         !gender &&
-                                            styles.placeholderText,
+                                        styles.placeholderText,
                                     ]}
                                 >
                                     {gender ||
@@ -636,7 +625,7 @@ const Profile = () => {
                                     style={[
                                         styles.selectText,
                                         !dob &&
-                                            styles.placeholderText,
+                                        styles.placeholderText,
                                     ]}
                                 >
                                     {dob ||
@@ -773,7 +762,7 @@ const Profile = () => {
                             style={[
                                 styles.saveButton,
                                 saving &&
-                                    styles.buttonDisabled,
+                                styles.buttonDisabled,
                             ]}
                             onPress={handleSave}
                             disabled={saving}
@@ -837,8 +826,8 @@ const Profile = () => {
                                 style={[
                                     styles.genderOption,
                                     gender ===
-                                        option.value &&
-                                        styles.selectedGender,
+                                    option.value &&
+                                    styles.selectedGender,
                                 ]}
                                 onPress={() =>
                                     selectGender(
@@ -850,8 +839,8 @@ const Profile = () => {
                                     style={[
                                         styles.genderOptionText,
                                         gender ===
-                                            option.value &&
-                                            styles.selectedGenderText,
+                                        option.value &&
+                                        styles.selectedGenderText,
                                     ]}
                                 >
                                     {option.label}
@@ -859,12 +848,12 @@ const Profile = () => {
 
                                 {gender ===
                                     option.value && (
-                                    <Ionicons
-                                        name="checkmark"
-                                        size={22}
-                                        color="#0C3F80"
-                                    />
-                                )}
+                                        <Ionicons
+                                            name="checkmark"
+                                            size={22}
+                                            color="#0C3F80"
+                                        />
+                                    )}
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -899,23 +888,37 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
 
+    headerRow: {
+        backgroundColor: '#fff',
+        // paddingHorizontal: 20,
+        // paddingVertical: 18,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEEEEE',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        // paddingLeft:10
+        paddingHorizontal: 20,
+    },
     header: {
         backgroundColor: '#fff',
-        paddingVertical: 20,
-        paddingHorizontal: 20,
-        elevation: 2,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEEEEE',
     },
-
     headerTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#222',
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#1A1A1A',
+        letterSpacing: -0.5,
+        textAlign: 'right'
     },
-
     headerSubtitle: {
-        marginTop: 5,
-        color: '#777',
-        fontSize: 14,
+        fontSize: 13,
+        color: '#666666',
+        marginTop: 4,
+        fontWeight: '500',
+        textAlign: 'right'
     },
 
     avatarContainer: {
@@ -945,11 +948,11 @@ const styles = StyleSheet.create({
     },
 
     card: {
-        backgroundColor: '#fff',
-        marginHorizontal: 15,
+        backgroundColor: '#fcfbfb',
+        // marginHorizontal: 15,
         borderRadius: 15,
-        padding: 18,
-        elevation: 2,
+        paddingHorizontal: 18,
+        // elevation: 2,
     },
 
     label: {
@@ -1108,5 +1111,21 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '700',
+    },
+    backButton: {
+        height: 42,
+        paddingHorizontal: 14,
+        borderRadius: 14,
+        backgroundColor: '#F1F5FA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    backText: {
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0C3F80',
     },
 });

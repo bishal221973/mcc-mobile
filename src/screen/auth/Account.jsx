@@ -174,47 +174,7 @@ const Account = ({ navigation }) => {
   
 
 
-  const logout = async () => {
-    try {
-      // Call Bagisto logout API
-      await axios.post('/customer/logout');
-
-      // Remove locally stored authentication data
-      await AsyncStorage.multiRemove([
-        'token',
-        'customer',
-      ]);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Logged Out',
-        text2: 'You have been logged out successfully.',
-      });
-
-      // Reset navigation so user cannot go back to Account
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-
-    } catch (error) {
-      console.log(
-        'Logout error:',
-        error?.response?.data || error
-      );
-
-      // Even if API logout fails, clear local session
-      await AsyncStorage.multiRemove([
-        'token',
-        'customer',
-      ]);
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    }
-  };
+  
 
   return (
     <>

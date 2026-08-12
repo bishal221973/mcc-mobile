@@ -251,10 +251,10 @@ const Account = ({ navigation }) => {
               <Text style={styles.statLabel}>Wishlist</Text>
             </TouchableOpacity>
 
-            <View style={styles.statCard}>
+            <TouchableOpacity onPress={()=>navigation.navigate('Address')} style={styles.statCard}>
               <Text style={styles.statValue}>{addresses.length}</Text>
               <Text style={styles.statLabel}>Addresses</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Menu */}

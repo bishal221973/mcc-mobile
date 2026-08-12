@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import axios from "../services/axios"
 import { BASE_URL } from '../services/config';
-
+import { useNavigation } from '@react-navigation/native';
 const categories1 = [
   {
     id: '1',
@@ -35,7 +35,7 @@ const categories1 = [
 ];
 
 const Categories = ({categoriesList}) => {
-
+  const navigation=useNavigation();
   return (
     <View style={styles.container}>
       {/* <Text>{JSON.stringify(categoriesList)}</Text> */}
@@ -46,7 +46,11 @@ const Categories = ({categoriesList}) => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 15 }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity style={styles.item} onPress={() => {
+                    navigation.navigate('AllProduct', {
+                        categoryId: item.id
+                    })
+                }}>
             <View style={styles.imageContainer}>
               <Image source={{ uri: item.logo_url }}  style={styles.image} />
             </View>

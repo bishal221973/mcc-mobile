@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: 150,
-        resizeMode: 'stretch',
+        resizeMode:'contain',
         marginTop: 0,
     },
 
@@ -412,6 +412,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
         color: PRIMARY,
+        marginBottom:10,
     },
 
     oldPrice: {

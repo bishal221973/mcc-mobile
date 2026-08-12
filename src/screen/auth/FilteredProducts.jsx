@@ -7,12 +7,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import Header from '../../component/Header';
 import axios from '../../services/axios';
 
-const FilteredProducts = () => {
+const FilteredProducts = ({navigation}) => {
   const route = useRoute();
   const search = route.params?.search ?? "";
 
@@ -84,7 +85,9 @@ const FilteredProducts = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ProductShow', {
+            id: item.id
+        })}>
       <Image
         source={{ uri: item.images?.[0]?.url }}
         style={styles.image}
@@ -99,7 +102,7 @@ const FilteredProducts = () => {
           {item.formatted_price}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

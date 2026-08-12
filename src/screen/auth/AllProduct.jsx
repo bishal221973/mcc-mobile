@@ -1,9 +1,14 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native'
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, RefreshControl,ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import axios from "../../services/axios"
 import Header from '../../component/Header'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ProductSkelton from "../../component/Loading/ProductSkeleton"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CartService from "../../services/cart"
+import Toast from 'react-native-toast-message';
+import CartEvents from '../../services/CartEvents';
+
 const PRIMARY = '#0C3F80';
 
 // FIX: Destructured navigation from props
@@ -14,6 +19,8 @@ const AllProduct = ({ route, navigation }) => {
     const [category, setCategory] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [addingProductId, setAddingProductId] = useState(null);
+const [quantity, setQuantity] = useState(1);
 
     const fetchProducts = async () => {
         try {
@@ -88,44 +95,122 @@ const AllProduct = ({ route, navigation }) => {
         }
     };
 
-    const renderProduct = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('ProductShow', { id: item.id })}
-        >
-            {/* <TouchableOpacity style={styles.favorite}>
-                <Ionicons name="heart-outline" size={20} color="#fff" />
-            </TouchableOpacity> */}
+    const handleAddToCart = async (product) => {
+        // Prevent duplicate clicks
+        const valid = await AsyncStorage.getItem('token');
+        if (!valid) {
+            await CartService.addToLocalCart(
+                {
+                    product: product,
+                },
+                quantity
+            );
+            navigation.replace('Login');
+            return;
+        }
 
-            {/* Product Image */}
-            <Image source={{ uri: item?.images[0]?.url }} style={styles.image} />
+        if (addingProductId === product.id) {
+            return;
+        }
 
-            {/* Product Name */}
-            <View style={{ paddingHorizontal: 10 }}>
-                <Text style={styles.name} numberOfLines={2}>
-                    {item.name}
-                </Text>
+        try {
 
-                {/* Price */}
-                <View style={styles.priceRow}>
-                    <Text style={styles.price}>{item.formatted_price}</Text>
+            setAddingProductId(product.id);
+
+            const pId = product.id;
+
+            await CartService.addServerItem(
+                {
+                    product_id: pId.toString(),
+                },
+                quantity
+            );
+            Toast.show({
+                type: 'success',
+                text1: 'Added to Cart',
+                text2: 'Product has been added to your cart 🛒',
+            });
+
+
+
+            CartEvents.emit([]);
+
+        } catch (error) {
+            console.log(
+                'Add to cart error:',
+                error?.response?.data || error
+            );
+
+            Toast.show({
+                type: 'error',
+                text1: 'Failed',
+                text2: 'Unable to add product to cart.',
+            });
+
+        } finally {
+            setAddingProductId(null);
+        }
+    };
+
+    const renderProduct = ({ item }) => {
+        const isAdding = addingProductId === item.id;
+        return (
+
+            <TouchableOpacity
+                style={styles.card}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('ProductShow', { id: item.id })}
+            >
+
+                <Image source={{ uri: item?.images[0]?.url }} style={styles.image} />
+
+                <View style={{ paddingHorizontal: 10 }}>
+                    <Text style={styles.name} numberOfLines={2}>
+                        {item.name}
+                    </Text>
+
+                    {/* Price */}
+                    <View style={styles.priceRow}>
+                        <Text style={styles.price}>{item.formatted_price}</Text>
+                    </View>
                 </View>
-            </View>
 
-            {/* Add to Cart */}
-            <TouchableOpacity style={styles.cartButton}>
-                <Ionicons name="cart-outline" size={18} color="#fff" />
-                <Text style={styles.cartText}>Add</Text>
+                {/* Add to Cart */}
+                <TouchableOpacity style={styles.cartButton} onPress={() => handleAddToCart(item)}>
+                    {isAdding ? (
+                                            <>
+                                                <ActivityIndicator
+                                                    size="small"
+                                                    color="#fff"
+                                                />
+                    
+                                                <Text style={styles.cartText}>
+                                                    Adding...
+                                                </Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Ionicons
+                                                    name="cart-outline"
+                                                    size={18}
+                                                    color="#fff"
+                                                />
+                    
+                                                <Text style={styles.cartText}>
+                                                    Add
+                                                </Text>
+                                            </>
+                                        )}
+                </TouchableOpacity>
             </TouchableOpacity>
-        </TouchableOpacity>
-    );
+        )
+    };
 
     return (
         // FIX: Added flex: 1 to parent container so FlatList scrolls properly
         <View style={{ flex: 1 }}>
             <Header />
-            <View style={{ backgroundColor: '#fff', padding: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between',alignItems:'center' }}>
+            <View style={{ backgroundColor: '#fff', padding: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
@@ -144,7 +229,7 @@ const AllProduct = ({ route, navigation }) => {
                 {loading ? (
                     <View style={styles.categorySkeleton} />
                 ) : (
-                    <Text style={{fontWeight:'bold'}}>
+                    <Text style={{ fontWeight: 'bold' }}>
                         {category?.[0]?.name || 'Category'}
                     </Text>
                 )}
@@ -254,10 +339,11 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '700',
         color: PRIMARY,
+        marginBottom: 12
     },
 
     cartButton: {
-        marginTop: 12,
+        marginTop: 'auto',
         backgroundColor: PRIMARY,
         borderRadius: 8,
         paddingVertical: 9,

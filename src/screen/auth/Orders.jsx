@@ -135,42 +135,6 @@ const Orders = ({ navigation }) => {
         );
     };
 
-    // const renderItem = ({ item }) => {
-    //     const statusStyle = getStatusStyles(item.status);
-    //     const itemImage = item?.items?.[0]?.product?.image_url || 'https://placeholder.com';
-    //     const itemName = item?.items?.[0]?.name || 'Order Items';
-    //     const totalItems = item?.items?.length || 1;
-
-    //     return (
-    //         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('OrderShow', { order: item })}>
-    //             <View style={styles.topRow}>
-    //                 <View>
-    //                     <Text style={styles.orderId}>Order #{item.id}</Text>
-    //                     <Text style={styles.date}>{item.created_at}</Text>
-    //                 </View>
-    //                 <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-    //                     <Text style={[styles.statusText, { color: statusStyle.text }]}>
-    //                         {item.status}
-    //                     </Text>
-    //                 </View>
-    //             </View>
-
-
-
-    //             <View style={styles.buttonRow}>
-    //                 <View style={styles.priceContainer}>
-    //                     <Text style={styles.priceLabel}>Total Amount</Text>
-    //                     <Text style={styles.priceText}>
-    //                         {item?.formatted_base_sub_total || 'N/A'}
-    //                     </Text>
-    //                 </View>
-
-
-    //             </View>
-    //         </TouchableOpacity>
-    //     );
-    // };
-
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
             <Ionicons name="bag-handle-outline" size={64} color="#B0BEC5" />
@@ -183,11 +147,28 @@ const Orders = ({ navigation }) => {
         <View style={styles.screenWrapper}>
             <Header />
             <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>My Orders</Text>
-                    <Text style={styles.headerSubtitle}>
-                        {orders.length} {orders.length === 1 ? 'Order' : 'Orders'} Found
-                    </Text>
+                <View style={[styles.headerRow]}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name="chevron-back"
+                            size={20}
+                            color="#0C3F80"
+                        />
+
+                        <Text style={styles.backText}>
+                            Back
+                        </Text>
+                    </TouchableOpacity>
+                    <View style={styles.header}>
+                        <Text style={styles.headerTitle}>My Orders</Text>
+                        <Text style={styles.headerSubtitle}>
+                            {orders.length} {orders.length === 1 ? 'Order' : 'Orders'}
+                        </Text>
+                    </View>
                 </View>
 
                 {loading ? (
@@ -227,15 +208,26 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    headerRow: {
+        backgroundColor: '#fff',
+        // paddingHorizontal: 20,
+        // paddingVertical: 18,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEEEEE',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems:'center',
+        // paddingLeft:10
+        paddingHorizontal: 20,
+    },
     header: {
         backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingVertical: 18,
+        paddingVertical: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#EEEEEE',
     },
     headerTitle: {
-        fontSize: 26,
+        fontSize: 22,
         fontWeight: '800',
         color: '#1A1A1A',
         letterSpacing: -0.5,
@@ -245,6 +237,7 @@ const styles = StyleSheet.create({
         color: '#666666',
         marginTop: 4,
         fontWeight: '500',
+        textAlign:'right'
     },
 
     card: {
@@ -375,5 +368,21 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 6,
         paddingHorizontal: 32,
+    },
+    backButton: {
+        height: 42,
+        paddingHorizontal: 14,
+        borderRadius: 14,
+        backgroundColor: '#F1F5FA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    backText: {
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0C3F80',
     },
 });

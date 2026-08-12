@@ -163,16 +163,30 @@ const Address = ({ navigation }) => {
             <Header />
 
             <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>
-                        My Addresses
-                    </Text>
+                <View style={[styles.headerRow]}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name="chevron-back"
+                            size={20}
+                            color="#0C3F80"
+                        />
 
-                    <Text style={styles.headerSubtitle}>
-                        {addresses.length} Saved Address
-                        {addresses.length > 1 ? 'es' : ''}
-                    </Text>
+                        <Text style={styles.backText}>
+                            Back
+                        </Text>
+                    </TouchableOpacity>
+                    <View style={styles.header}>
+                        <Text style={styles.headerTitle}>My Wishlists</Text>
+                        <Text style={styles.headerSubtitle}>
+                            {addresses.length} {addresses.length === 1 ? 'Address' : 'Addresses'}
+                        </Text>
+                    </View>
                 </View>
+
 
                 {loading ? (
                     <AddressSkeleton />
@@ -212,23 +226,36 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F6FA',
     },
 
+    headerRow: {
+        backgroundColor: '#fff',
+        // paddingHorizontal: 20,
+        // paddingVertical: 18,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEEEEE',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        // paddingLeft:10
+        paddingHorizontal: 20,
+    },
     header: {
         backgroundColor: '#fff',
-        padding: 18,
-        elevation: 2,
-        marginBottom: 10,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEEEEE',
     },
 
     headerTitle: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: '700',
         color: '#222',
     },
-
     headerSubtitle: {
-        color: '#777',
-        marginTop: 2,
         fontSize: 13,
+        color: '#666666',
+        marginTop: 4,
+        fontWeight: '500',
+        textAlign: 'right'
     },
 
     card: {
@@ -343,5 +370,21 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginLeft: 8,
         fontSize: 16,
+    },
+    backButton: {
+        height: 42,
+        paddingHorizontal: 14,
+        borderRadius: 14,
+        backgroundColor: '#F1F5FA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    backText: {
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0C3F80',
     },
 });

@@ -6,23 +6,24 @@ const Splash = ({ navigation }) => {
     <View style={styles.container}>
       {/* Brand Title & Logo Area */}
       <View style={styles.logoContainer}>
-        <Image 
+        <Image
           source={require('../../assets/images/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.logoText}>MyApp</Text>
-        <Text style={styles.tagline}>Welcome to your ultimate app experience</Text>
+        <Text style={styles.logoText}>MCC</Text>
+        <Text style={styles.tagline}>WELCOME TO MOUNTAIN CONS CHEM PVT. LTD.</Text>
       </View>
 
       {/* Action Button */}
-      <TouchableOpacity 
-        style={styles.button} 
+      <TouchableOpacity
+        style={styles.button}
         activeOpacity={0.8}
         onPress={() => navigation.replace('Drawer')}
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
+      <Text style={styles.footer}>Design and developed by <Text style={{fontWeight:'bold',color:'#f2f2f2'}}>GK IT Solution</Text></Text>
     </View>
   )
 }
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', // Pushes button to bottom, logo to center
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   logoContainer: {
     flex: 1,
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
     width: 120, // Explicit size needed for local images
     height: 120,
     marginBottom: 20,
-    backgroundColor:'#fff',
+    backgroundColor: '#fff',
     borderRadius: 60,
   },
   logoText: {
@@ -59,9 +60,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tagline: {
-    fontSize: 16,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.7)', // Semi-transparent white
     marginTop: 10,
+    textAlign: 'center',
+  },
+  footer: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.7)', // Semi-transparent white
+    marginTop: 30,
     textAlign: 'center',
   },
   button: {

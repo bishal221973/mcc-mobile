@@ -27,7 +27,7 @@ const CARD_GAP = 12;
 const HORIZONTAL_PADDING = 15;
 
 const CARD_WIDTH =
-  (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CARD_GAP) / 2;
+    (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CARD_GAP) / 2;
 
 const Products = ({ title, filters }) => {
 
@@ -36,15 +36,19 @@ const Products = ({ title, filters }) => {
     const [addingProductId, setAddingProductId] = useState(null);
 
     const [products, setProducts] = useState([]);
+    const [products1, setProducts1] = useState([]);
     const fetchProducts = async () => {
         try {
             const res = await axios.get("/products", {
                 params: {
-                    category_id: filters.category_id
+                    category_id: filters.category_id,
                 },
             });
 
+            // Alert.alert("success", "Saed");
+
             setProducts(res.data.data);
+            setProducts1(res.data.data);
 
 
 
@@ -55,7 +59,7 @@ const Products = ({ title, filters }) => {
 
     useEffect(() => {
         fetchProducts()
-    })
+    }, [])
 
 
     const addToWishlist = async (productId) => {
@@ -154,7 +158,7 @@ const Products = ({ title, filters }) => {
                             {item.formatted_price}
                         </Text>
 
-                       
+
                     </View>
                 </View>
 
@@ -262,6 +266,7 @@ const Products = ({ title, filters }) => {
 
     return (
         <View style={styles.container}>
+            {/* <Text>{JSON.stringify(products1)}</Text> */}
             <View style={styles.headingRow}>
                 <Text
                     style={styles.heading}
@@ -379,7 +384,7 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: 150,
-        resizeMode:'contain',
+        resizeMode: 'contain',
         marginTop: 0,
     },
 
@@ -412,7 +417,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
         color: PRIMARY,
-        marginBottom:10,
+        marginBottom: 10,
     },
 
     oldPrice: {

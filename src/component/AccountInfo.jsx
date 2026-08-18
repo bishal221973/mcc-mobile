@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-na
 import React from 'react'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const AccountInfo = ({ customer }) => {
 
     const navigation = useNavigation();
@@ -28,10 +30,34 @@ const AccountInfo = ({ customer }) => {
 
     const logout = async () => {
         try {
-            // Call Bagisto logout API
-            await axios.post('/customer/logout');
+            // Prevent multiple logout requests
+            if (loggingOut) {
+                return;
+            }
 
-            // Remove locally stored authentication data
+            setLoggingOut(true);
+
+            // Try to logout from Bagisto/API
+            try {
+                await axios.post('/customer/logout');
+            } catch (apiError) {
+                console.log(
+                    'Logout API error:',
+                    JSON.stringify(
+                        {
+                            message: apiError?.message,
+                            status: apiError?.response?.status,
+                            data: apiError?.response?.data,
+                        },
+                        null,
+                        2,
+                    ),
+                );
+
+                // Continue logout locally even if API fails
+            }
+
+            // Always clear local authentication data
             await AsyncStorage.multiRemove([
                 'token',
                 'customer',
@@ -43,30 +69,57 @@ const AccountInfo = ({ customer }) => {
                 text2: 'You have been logged out successfully.',
             });
 
-            // Reset navigation so user cannot go back to Account
+            // Reset navigation
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Login' }],
+                routes: [
+                    {
+                        name: 'Login',
+                    },
+                ],
             });
 
         } catch (error) {
             console.log(
                 'Logout error:',
-                error?.response?.data || error
+                JSON.stringify(
+                    {
+                        message: error?.message,
+                        status: error?.response?.status,
+                        data: error?.response?.data,
+                    },
+                    null,
+                    2,
+                ),
             );
 
-            // Even if API logout fails, clear local session
-            await AsyncStorage.multiRemove([
-                'token',
-                'customer',
-            ]);
+            // Make absolutely sure local session is removed
+            try {
+                await AsyncStorage.multiRemove([
+                    'token',
+                    'customer',
+                ]);
+            } catch (storageError) {
+                console.log(
+                    'Storage clear error:',
+                    storageError,
+                );
+            }
 
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Login' }],
+                routes: [
+                    {
+                        name: 'Login',
+                    },
+                ],
             });
+
+        } finally {
+            setLoggingOut(false);
         }
     };
+
 
     return (
         <View style={styles.profileCard}>
@@ -93,7 +146,7 @@ const AccountInfo = ({ customer }) => {
                     <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                         <Ionicons
                             name="log-out-outline"
-                            size={22}
+                            size={18}
                             color="#fff"
 
                         />
@@ -148,6 +201,7 @@ const styles = StyleSheet.create({
     editText: {
         color: '#fff',
         fontWeight: '600',
+        fontSize:12
     },
 
     logoutBtn: {
@@ -164,8 +218,8 @@ const styles = StyleSheet.create({
 
     logoutText: {
         color: '#fff',
-        marginLeft: 10,
+        marginLeft: 5,
         fontWeight: '700',
-        fontSize: 16,
+        fontSize: 13,
     },
 })

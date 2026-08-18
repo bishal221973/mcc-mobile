@@ -112,7 +112,7 @@ const Login = ({ navigation }) => {
 
           <View style={styles.registerContainer}>
             <Text style={styles.noAccountText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={()=>navigation.navigate('Signup')}>
+            <TouchableOpacity>
               <Text style={styles.registerText}>Sign Up</Text>
             </TouchableOpacity>
           </View>

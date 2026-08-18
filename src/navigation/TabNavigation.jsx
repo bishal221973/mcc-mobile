@@ -50,9 +50,9 @@ const Tabs = () => {
       if (token) {
         const cart = await CartService.getServerCart();
 
-        console.log("////////////////////////////////")
-        console.log(cart)
-        console.log("////////////////////////////////")
+        // console.log("////////////////////////////////")
+        // console.log(cart)
+        // console.log("////////////////////////////////")
         
         // Alert.alert('sdasd', cart.items.length.toString())
         setCartCount(cart?.items?.length || []);

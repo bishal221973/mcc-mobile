@@ -18,6 +18,7 @@ import axios from "../../services/axios"
 import { useFocusEffect } from '@react-navigation/native';
 import CartSkeleton from '../../component/Loading/CartSkeleton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import PleaseLogin from '../../component/PleaseLogin'
 const Cart = ({ navigation }) => {
 
     const [carts, setCarts] = useState([]);
@@ -25,6 +26,11 @@ const Cart = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    const [customer, setCustomer] = useState([]);
+    const fetchProfile = async () => {
+        const response = await axios.get('/customer/get');
+        setCustomer(response?.data?.data);
+    }
     const loadCart = async (showLoading = false) => {
         if (showLoading) {
             setLoading(true);
@@ -129,6 +135,7 @@ const Cart = ({ navigation }) => {
         };
 
         redirectLogin();
+        fetchProfile();
     }, []);
 
     const renderItem = ({ item }) => (
@@ -166,26 +173,22 @@ const Cart = ({ navigation }) => {
             </View>
         </>
     );
+    if (!customer?.id) {
+        return (
+            <>
+                <Header />
+                <SafeAreaView style={styles.container}>
+                    <PleaseLogin />
+                </SafeAreaView>
+            </>
+        );
+    }
 
     return (
         <>
             <Header />
             <SafeAreaView style={styles.container}>
-                {/* <Text>{JSON.stringify(cartData?.formatted_sub_total)}</Text> */}
-                {/* <FlatList
-                    data={carts}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh}
-                            colors={['#0C3F80']}
-                            tintColor="#0C3F80"
-                        />
-                    }
-                /> */}
+
 
                 {loading ? (
                     <CartSkeleton />

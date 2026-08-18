@@ -46,7 +46,7 @@ class CartService {
     async getServerCart() {
         try {
             const token = await AsyncStorage.getItem('token');
-            console.log(token)
+            // console.log(token)
             const res = await api.get('/customer/cart');
             console.log("...........................")
             console.log(res)
@@ -54,9 +54,9 @@ class CartService {
 
             return res.data.data;
         } catch (error) {
-            console.log("////////////////////////////////////////////")
-            console.log(error)
-            console.log("/////////////////////////////////////")
+            // console.log("////////////////////////////////////////////")
+            // console.log(error)
+            // console.log("/////////////////////////////////////")
         }
     }
 

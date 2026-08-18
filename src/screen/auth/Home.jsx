@@ -9,7 +9,6 @@ import {
   RefreshControl,
   ActivityIndicator
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "../../component/Header"
 import Slider from "../../component/Slider"
 import Categories from "../../component/Categories"

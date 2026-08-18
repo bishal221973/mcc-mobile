@@ -16,6 +16,7 @@ import axios from "../../services/axios"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Amounts from "../../component/Amounts"
 import AccountInfo from "../../component/AccountInfo"
+import PleaseLogin from '../../component/PleaseLogin';
 const menus = [
   {
     id: 1,
@@ -173,7 +174,16 @@ const Account = ({ navigation }) => {
 
   
 
-
+if (!customer?.id) {
+        return (
+            <>
+                <Header />
+                <SafeAreaView style={styles.container}>
+                    <PleaseLogin />
+                </SafeAreaView>
+            </>
+        );
+    }
   
 
   return (

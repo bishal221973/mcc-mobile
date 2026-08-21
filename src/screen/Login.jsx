@@ -69,14 +69,13 @@ const Login = ({ navigation }) => {
         {/* Input Fields Form */}
         <View style={styles.formSection}>
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email Address</Text>
+            <Text style={styles.inputLabel}>Email / Phone</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter your email"
               placeholderTextColor="rgba(255, 255, 255, 0.5)"
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
               autoCapitalize="none"
             />
           </View>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Review from "../component/Review"
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Pdf from "../component/Pdf"
 const { width } = Dimensions.get('window');
 
 const ProductTabs = ({ product }) => {
@@ -26,41 +28,24 @@ const ProductTabs = ({ product }) => {
         </View>
     );
 
+  
     // 2. Render Specifications Tab Content
     const renderSpecifications = () => {
-        const specsData = [
-            { key: 'Material Base', value: 'High-grade Polymer Cement' },
-            { key: 'Open Time', value: '20 - 25 minutes' },
-            { key: 'Curing Time', value: '24 hours' },
-            { key: 'Coverage', value: '55 - 60 sq. ft. per 20kg bag' },
-            { key: 'Water Resistance', value: 'Excellent' },
-            { key: 'Shelf Life', value: '12 Months' },
-        ];
-
+        
         return (
             <View style={styles.contentBody}>
-                {specsData.map((item, index) => (
-                    <View
-                        key={index}
-                        style={[
-                            styles.specRow,
-                            index % 2 === 0 && styles.specRowEven
-                        ]}
-                    >
-                        <Text style={styles.specKey}>{item.key}</Text>
-                        <Text style={styles.specValue}>{item.value}</Text>
-                    </View>
-                ))}
+                <Pdf product={product}/>
+                
             </View>
         );
     };
 
     // 3. Render Reviews Tab Content
     const renderReviews = () => {
-        
+
         return (
-            <Review product={product}/>
-           
+            <Review product={product} />
+
         );
     };
 

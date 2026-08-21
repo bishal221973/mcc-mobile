@@ -315,6 +315,9 @@ const Checkout = ({ navigation }) => {
                 return;
             }
 
+            // Alert.alert(JSON.stringify(selectedShippingMethod === "free_shipping" ? 'free_free' : 'flatrate_flatrate'));
+
+            // return;
             setPlacingOrder(true);
 
             const addressPayload = {
@@ -348,7 +351,7 @@ const Checkout = ({ navigation }) => {
                     vat_id: selectedAddress.vat_id,
                 },
 
-                shipping_method: selectedShippingMethod,
+                shipping_method: selectedShippingMethod === "free_shipping" ? 'free_free' : 'flatrate_flatrate',
 
                 payment: {
                     method: selectedPayment,
@@ -373,7 +376,7 @@ const Checkout = ({ navigation }) => {
             await axios.post(
                 '/customer/checkout/save-shipping',
                 {
-                    shipping_method: selectedShippingMethod
+                    shipping_method: selectedShippingMethod == 'free_shipping'
                         ? 'free_free'
                         : 'flatrate_flatrate',
                 }
@@ -510,8 +513,10 @@ const Checkout = ({ navigation }) => {
                 <Text style={styles.headingShipping}>Shipping Method</Text>
 
                 <View style={styles.rowShipping}>
+                    <Text>{JSON.stringify(selectShippingMethod)}</Text>
                     {shippingMethods.map(item => {
                         const active = selectedShippingMethod === item.code;
+                        
 
                         return (
                             <ShippingMethod key={item.code} selectShippingMethod={selectShippingMethod} item={item} active={active} />

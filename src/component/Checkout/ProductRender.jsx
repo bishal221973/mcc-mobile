@@ -15,7 +15,7 @@ const ProductRender = ({ item }) => {
 
         <View style={styles.bottomRow}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price} </Text>
+            <Text style={styles.price}>{(item?.product?.product?.formatted_regular_price ?? item?.product?.product?.formatted_price) ?? (item?.product?.formatted_regular_price ?? item?.product?.formatted_price)} </Text>
             <Text style={[styles.price, { color: '#000', fontSize: 13 }]}>X</Text>
             <Text style={[styles.price, { color: '#000', fontSize: 13 }]}>{item.quantity}</Text>
           </View>

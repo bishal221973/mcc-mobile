@@ -150,7 +150,7 @@ const Cart = ({ navigation }) => {
 
                     {/* <Text style={styles.variant}>{item.variant}</Text> */}
 
-                    <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price}</Text>
+                    <Text style={styles.price}>{(item?.product?.product?.formatted_regular_price ?? item?.product?.product?.formatted_price) ?? (item?.product?.formatted_regular_price ?? item?.product?.formatted_price)}</Text>
 
                     <View style={styles.bottomRow}>
                         <View style={styles.qtyContainer}>

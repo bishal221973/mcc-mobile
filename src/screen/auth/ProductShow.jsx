@@ -225,7 +225,7 @@ const ProductShow = ({ route, navigation }) => {
 
                     </View>
                     <Text style={[styles.productPrice, { marginTop: 5 }]}>
-                        {product.formatted_price}
+                        {product?.formatted_regular_price ?? product.formatted_price}
                     </Text>
 
 
@@ -330,7 +330,7 @@ const ProductShow = ({ route, navigation }) => {
 
 
                     <Text style={styles.totalPriceText}>
-                        Rs. {Number(product.price) * quantity}
+                        Rs. {Number(product?.regular_price ?? product?.price) * quantity}
                     </Text>
 
 

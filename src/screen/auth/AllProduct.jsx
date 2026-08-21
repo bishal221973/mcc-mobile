@@ -396,7 +396,7 @@ const AllProduct = ({ route, navigation }) => {
                             }
                         >
                             {
-                                item.formatted_price
+                                item?.formatted_regular_price ?? item.formatted_price
                             }
                         </Text>
                     </View>

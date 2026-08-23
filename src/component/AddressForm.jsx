@@ -230,7 +230,7 @@ export default function Checkout({onSuccess}) {
                             {/* <Text>{JSON.stringify(formData?.country)}</Text> */}
 
                             <View style={styles.row}>
-                                <View style={styles.flexField}>
+                                {/* <View style={styles.flexField}>
                                     <Input
                                         icon="map-outline"
                                         label="State"
@@ -240,7 +240,7 @@ export default function Checkout({onSuccess}) {
                                         }
                                         placeholder="State"
                                     />
-                                </View>
+                                </View> */}
 
                                 <View style={[styles.flexField, { marginLeft: 10 }]}>
                                     <Input
@@ -256,7 +256,7 @@ export default function Checkout({onSuccess}) {
                             </View>
 
                             <View style={styles.row}>
-                                <View style={styles.flexField}>
+                                {/* <View style={styles.flexField}>
                                     <Input
                                         icon="pin-outline"
                                         label="Zip Code"
@@ -267,7 +267,7 @@ export default function Checkout({onSuccess}) {
                                         placeholder="Zip Code"
                                         keyboardType="numeric"
                                     />
-                                </View>
+                                </View> */}
 
                                 <View style={[styles.flexField, { marginLeft: 10 }]}>
                                     <Input

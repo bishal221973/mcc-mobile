@@ -7,6 +7,7 @@ import {
   getMessaging,
   registerDeviceForRemoteMessages,
   getToken,
+  onMessage
 } from '@react-native-firebase/messaging';
 const App = () => {
 
@@ -40,6 +41,16 @@ const App = () => {
 
   useEffect(() => {
     requestPermission();
+  }, []);
+
+
+  // Forground msg
+  useEffect(() => {
+    const messaging = getMessaging();
+    const unsubscribe = onMessage(messaging, async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {

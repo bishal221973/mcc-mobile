@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "570499196186",
+    "project_id": "mcckohalpur",
+    "storage_bucket": "mcckohalpur.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570499196186:android:020d75b82eaf04264978a3",
+        "android_client_info": {
+          "package_name": "com.mccmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlX5ecoPJWJhmsMIxMKHSvZ7MTpAB9bVI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

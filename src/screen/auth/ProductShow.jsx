@@ -224,9 +224,21 @@ const ProductShow = ({ route, navigation }) => {
 
 
                     </View>
-                    <Text style={[styles.productPrice, { marginTop: 5 }]}>
-                        {product?.formatted_regular_price ?? product.formatted_price}
-                    </Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:5}}>
+                        <Text
+                            style={{
+                                textDecorationLine: 'line-through',
+                                color: '#888',
+                                fontSize: 12,
+                            }}
+                        >
+                            {product?.formatted_regular_price}
+                        </Text>
+                        
+                        <Text style={[styles.productPrice]}>
+                            {product.formatted_price}
+                        </Text>
+                    </View>
 
 
 
@@ -330,7 +342,7 @@ const ProductShow = ({ route, navigation }) => {
 
 
                     <Text style={styles.totalPriceText}>
-                        Rs. {Number(product?.regular_price ?? product?.price) * quantity}
+                        Rs. {Number(product?.price) * quantity}
                     </Text>
 
 
@@ -345,7 +357,7 @@ const ProductShow = ({ route, navigation }) => {
                     <TouchableOpacity
                         style={styles.cartButton}
                         onPress={handleAddToCart}
-                         disabled={loading}
+                        disabled={loading}
                     >
                         {loading ? (
                             <ActivityIndicator
@@ -368,7 +380,7 @@ const ProductShow = ({ route, navigation }) => {
                     <TouchableOpacity
                         style={styles.buyNowButton}
                         onPress={handleBuyNow}
-                         disabled={loading}
+                        disabled={loading}
                     >
 
                         <Text style={styles.buyNowButtonText}>

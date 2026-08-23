@@ -150,8 +150,20 @@ const Cart = ({ navigation }) => {
 
                     {/* <Text style={styles.variant}>{item.variant}</Text> */}
 
-                    <Text style={styles.price}>{(item?.product?.product?.formatted_regular_price ?? item?.product?.product?.formatted_price) ?? (item?.product?.formatted_regular_price ?? item?.product?.formatted_price)}</Text>
+                    <View style={{flexDirection:'row',gap:5,alignItems:'center'}}>
+                        <Text
+                            style={{
+                                textDecorationLine: 'line-through',
+                                color: '#333',
+                                fontSize:11
+                            }}
+                        >
+                            {item?.product?.formatted_regular_price ?? item?.product?.product?.formatted_regular_price}
+                        </Text>
+                        <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price}</Text>
 
+
+                    </View>
                     <View style={styles.bottomRow}>
                         <View style={styles.qtyContainer}>
                             <TouchableOpacity
@@ -357,7 +369,7 @@ const styles = StyleSheet.create({
     price: {
         color: '#0C3F80',
         fontWeight: 'bold',
-        fontSize: 15,
+        fontSize: 12,
         marginTop: 0,
     },
 

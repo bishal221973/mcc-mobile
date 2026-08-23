@@ -391,15 +391,26 @@ const AllProduct = ({ route, navigation }) => {
                         }
                     >
                         <Text
+                            style={{
+                                textDecorationLine: 'line-through',
+                                color: '#888',
+                                fontSize: 8,
+                            }}
+                        >
+                            {item?.formatted_regular_price}
+                        </Text>
+                        <Text
                             style={
                                 styles.price
                             }
                         >
                             {
-                                item?.formatted_regular_price ?? item.formatted_price
+                                item.formatted_price
                             }
                         </Text>
+                        
                     </View>
+
                 </View>
 
                 {/* Add To Cart */}
@@ -720,7 +731,7 @@ const styles = StyleSheet.create({
     },
 
     name: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '600',
         color: '#374151',
         marginTop: 5,
@@ -729,14 +740,15 @@ const styles = StyleSheet.create({
     priceRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
+        marginBottom: 8,
+        justifyContent:'space-between'
     },
 
     price: {
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: '700',
         color: PRIMARY,
-        marginBottom: 12,
+        // marginBottom: 12,
     },
 
     cartButton: {

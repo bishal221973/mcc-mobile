@@ -39,11 +39,17 @@ const Input = ({
     onChangeText,
     placeholder,
     keyboardType = 'default',
+    isRequired = false
 }) => {
     return (
         <View style={styles.inputWrapper}>
-            <Text style={styles.label}>{label}</Text>
-
+            {/* <Text style={styles.label}>{label} {isRequired && <Text style={{color:'red',opacity:0.6}}>*</Text>}</Text> */}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.label}>First Name</Text>
+                <Text style={{ color: 'red', opacity: 0.6, marginLeft: 3 }}>
+                    *
+                </Text>
+            </View>
             <View style={styles.inputContainer}>
                 <Ionicons
                     name={icon}
@@ -222,10 +228,9 @@ export default function AddressForm({
                     error.response.data.errors
                 ).forEach(([field, messages]) => {
                     console.log(
-                        `${field}: ${
-                            Array.isArray(messages)
-                                ? messages.join(', ')
-                                : messages
+                        `${field}: ${Array.isArray(messages)
+                            ? messages.join(', ')
+                            : messages
                         }`
                     );
                 });
@@ -412,6 +417,7 @@ export default function AddressForm({
                                             )
                                         }
                                         placeholder="First Name"
+                                        isRequired={true}
                                     />
                                 </View>
 
@@ -436,6 +442,7 @@ export default function AddressForm({
                                             )
                                         }
                                         placeholder="Last Name"
+                                        isRequired={true}
                                     />
                                 </View>
                             </View>
@@ -454,6 +461,7 @@ export default function AddressForm({
                                 }
                                 placeholder="Email"
                                 keyboardType="email-address"
+                                isRequired={true}
                             />
 
                             {/* VAT */}
@@ -486,6 +494,7 @@ export default function AddressForm({
                                     )
                                 }
                                 placeholder="Street Address"
+                                isRequired={true}
                             />
 
                             {/* Country */}
@@ -528,6 +537,7 @@ export default function AddressForm({
                                     )
                                 }
                                 placeholder="City"
+                                isRequired={true}
                             />
 
                             {/* Zip Code */}
@@ -562,6 +572,7 @@ export default function AddressForm({
                                 }
                                 placeholder="Telephone"
                                 keyboardType="phone-pad"
+                                isRequired={true}
                             />
 
                             {/* Submit */}
@@ -667,7 +678,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#F8FAFD',
-        marginTop:-10
+        marginTop: -10
     },
 
     profileEditText: {

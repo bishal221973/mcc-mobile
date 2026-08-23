@@ -1,8 +1,18 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import {
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+} from 'react-native';
+import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-const Address = ({ setBillingAddress, item, selected }) => {
+import AddressForm from "../AddressForm"
+const Address = ({
+    setBillingAddress,
+    item,
+    selected,
+    onEdit,
+}) => {
     return (
         <TouchableOpacity
             activeOpacity={0.9}
@@ -10,7 +20,9 @@ const Address = ({ setBillingAddress, item, selected }) => {
             style={[
                 styles.card,
                 selected && styles.selectedCard,
-            ]}>
+            ]}
+        >
+            {/* Header */}
             <View style={styles.header}>
                 <View style={styles.left}>
                     <Ionicons
@@ -23,7 +35,7 @@ const Address = ({ setBillingAddress, item, selected }) => {
                         color="#0C3F80"
                     />
 
-                    <View style={{ marginLeft: 10 }}>
+                    <View style={styles.nameContainer}>
                         <Text style={styles.name}>
                             {item.first_name} {item.last_name}
                         </Text>
@@ -36,9 +48,12 @@ const Address = ({ setBillingAddress, item, selected }) => {
                     </View>
                 </View>
 
-
+                {/* Edit */}
+                <AddressForm onSuccess={onEdit} address={item}/>
+                
             </View>
 
+            {/* Address */}
             <View style={styles.addressRow}>
                 <Ionicons
                     name="location-outline"
@@ -56,13 +71,11 @@ const Address = ({ setBillingAddress, item, selected }) => {
                     {item.country} - {item.postcode}
                 </Text>
             </View>
-
-
         </TouchableOpacity>
-    )
-}
+    );
+};
 
-export default Address
+export default Address;
 
 const styles = StyleSheet.create({
     card: {
@@ -72,21 +85,30 @@ const styles = StyleSheet.create({
         borderColor: '#E5E5E5',
         padding: 15,
     },
+
     selectedCard: {
         borderColor: '#0C3F80',
         borderWidth: 2,
     },
+
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
     },
 
     left: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
+        paddingRight: 10,
     },
+
+    nameContainer: {
+        marginLeft: 10,
+        flex: 1,
+    },
+
     name: {
         fontSize: 16,
         fontWeight: '700',
@@ -97,6 +119,11 @@ const styles = StyleSheet.create({
         color: '#777',
         marginTop: 3,
     },
+
+   
+
+   
+
     addressRow: {
         flexDirection: 'row',
         marginTop: 15,
@@ -108,5 +135,4 @@ const styles = StyleSheet.create({
         color: '#555',
         lineHeight: 22,
     },
-
-})
+});

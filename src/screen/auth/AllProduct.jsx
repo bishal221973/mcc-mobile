@@ -7,6 +7,7 @@ import {
     Image,
     RefreshControl,
     ActivityIndicator,
+    useWindowDimensions
 } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from '../../services/axios';
@@ -17,11 +18,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CartService from '../../services/cart';
 import Toast from 'react-native-toast-message';
 import CartEvents from '../../services/CartEvents';
-
+import RenderHTML from 'react-native-render-html';
 const PRIMARY = '#0C3F80';
 
 const AllProduct = ({ route, navigation }) => {
     const { categoryId } = route.params;
+    const { width } = useWindowDimensions();
+
 
     // =========================================
     // Products
@@ -40,6 +43,7 @@ const AllProduct = ({ route, navigation }) => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
+    // const [category,setCategory]=useState()
     // =========================================
     // Pagination
     // =========================================
@@ -408,7 +412,7 @@ const AllProduct = ({ route, navigation }) => {
                                 item.formatted_price
                             }
                         </Text>
-                        
+
                     </View>
 
                 </View>
@@ -581,6 +585,7 @@ const AllProduct = ({ route, navigation }) => {
                         showsVerticalScrollIndicator={
                             false
                         }
+
                     />
                 ) : (
                     <FlatList
@@ -639,6 +644,32 @@ const AllProduct = ({ route, navigation }) => {
                                 }
                             />
                         }
+
+                        ListHeaderComponent={
+                            <View style={styles.header}>
+                                {category?.[0]?.banner_url && (
+
+                                    <Image
+                                        source={{
+                                            uri: category?.[0]?.banner_url,
+                                        }}
+                                        style={styles.banner}
+                                    />
+                                )}
+                                {category?.[0]?.description && (
+
+                                    <View style={{ paddingVertical: 20 }}>
+                                        <RenderHTML
+                                            contentWidth={width - 20}
+                                            source={{
+                                                html: category?.[0]?.description || '',
+                                            }}
+                                            enableCSSInlineProcessing={true}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                        }
                     />
                 )}
             </View>
@@ -666,7 +697,7 @@ const styles = StyleSheet.create({
 
     categoryTitle: {
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 13,
         color: '#111827',
     },
 
@@ -725,6 +756,12 @@ const styles = StyleSheet.create({
         height: 120,
         resizeMode: 'contain',
     },
+    banner: {
+        width: '100%',
+        height: 130,
+        resizeMode: 'stretch',
+        borderRadius: 10
+    },
 
     productInfo: {
         paddingHorizontal: 10,
@@ -741,7 +778,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
-        justifyContent:'space-between'
+        justifyContent: 'space-between'
     },
 
     price: {

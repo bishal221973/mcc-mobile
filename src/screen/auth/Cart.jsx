@@ -115,6 +115,50 @@ const Cart = ({ navigation }) => {
         }
     };
 
+    const removeFromCart = (itemId) => {
+        Alert.alert(
+            'Remove Item',
+            'Are you sure you want to remove this item from your cart?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Remove',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await axios.delete(
+                                `/customer/cart/remove/${itemId}`
+                            );
+
+                            Toast.show({
+                                type: 'success',
+                                text1: 'Item Removed',
+                                text2: 'Item has been removed from your cart.',
+                            });
+
+                            await loadCart(false);
+                        } catch (error) {
+                            console.error(
+                                'Remove cart item error:',
+                                error.response?.data || error.message
+                            );
+
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Remove Failed',
+                                text2:
+                                    error.response?.data?.message ||
+                                    'Unable to remove item from cart.',
+                            });
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
 
 
@@ -138,52 +182,144 @@ const Cart = ({ navigation }) => {
         fetchProfile();
     }, []);
 
+    // const renderItem = ({ item }) => (
+    //     <>
+    //         {/* <Text>{JSON.stringify(item?.)}</Text> */}
+    //         <View style={styles.card}>
+    //             <Image source={{ uri: item?.product?.product?.images[0]?.small_image_url ?? item?.product?.images[0]?.small_image_url }} style={styles.image} />
+    //             <View style={styles.info}>
+    //                 <Text numberOfLines={2} style={styles.name}>
+    //                     {item?.product?.product?.name ?? item?.product?.name}
+    //                 </Text>
+
+    //                 {/* <Text style={styles.variant}>{item.variant}</Text> */}
+
+    //                 <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+    //                     <Text
+    //                         style={{
+    //                             textDecorationLine: 'line-through',
+    //                             color: '#333',
+    //                             fontSize: 11
+    //                         }}
+    //                     >
+    //                         {item?.product?.formatted_regular_price ?? item?.product?.product?.formatted_regular_price}
+    //                     </Text>
+    //                     <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price}</Text>
+
+
+    //                 </View>
+    //                 <View style={styles.bottomRow}>
+    //                     <View style={styles.qtyContainer}>
+    //                         <TouchableOpacity
+    //                             onPress={() => decreaseQty(item.id, item.quantity)}
+    //                             style={styles.qtyButton}>
+    //                             <Text style={styles.qtyText}>−</Text>
+    //                         </TouchableOpacity>
+
+    //                         <Text style={styles.qty}>{item?.quantity}</Text>
+
+    //                         <TouchableOpacity
+    //                             onPress={() => increaseQty(item.id, item.quantity)}
+    //                             style={styles.qtyButton}>
+    //                             <Text style={styles.qtyText}>+</Text>
+    //                         </TouchableOpacity>
+    //                     </View>
+    //                 </View>
+    //             </View>
+    //         </View>
+    //     </>
+    // );
     const renderItem = ({ item }) => (
-        <>
-            {/* <Text>{JSON.stringify(item?.)}</Text> */}
-            <View style={styles.card}>
-                <Image source={{ uri: item?.product?.product?.images[0]?.small_image_url ?? item?.product?.images[0]?.small_image_url }} style={styles.image} />
-                <View style={styles.info}>
-                    <Text numberOfLines={2} style={styles.name}>
-                        {item?.product?.product?.name ?? item?.product?.name}
+        <View style={styles.card}>
+            <Image
+                source={{
+                    uri:
+                        item?.product?.product?.images?.[0]?.small_image_url ??
+                        item?.product?.images?.[0]?.small_image_url,
+                }}
+                style={styles.image}
+            />
+
+            <View style={styles.info}>
+                <View>
+                    <Text
+                        numberOfLines={2}
+                        style={styles.name}
+                    >
+                        {item?.product?.product?.name ??
+                            item?.product?.name}
                     </Text>
 
-                    {/* <Text style={styles.variant}>{item.variant}</Text> */}
-
-                    <View style={{flexDirection:'row',gap:5,alignItems:'center'}}>
-                        <Text
-                            style={{
-                                textDecorationLine: 'line-through',
-                                color: '#333',
-                                fontSize:11
-                            }}
-                        >
-                            {item?.product?.formatted_regular_price ?? item?.product?.product?.formatted_regular_price}
+                    <View style={styles.priceRow}>
+                        <Text style={styles.regularPrice}>
+                            {item?.product?.formatted_regular_price ??
+                                item?.product?.product?.formatted_regular_price}
                         </Text>
-                        <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price}</Text>
 
-
-                    </View>
-                    <View style={styles.bottomRow}>
-                        <View style={styles.qtyContainer}>
-                            <TouchableOpacity
-                                onPress={() => decreaseQty(item.id, item.quantity)}
-                                style={styles.qtyButton}>
-                                <Text style={styles.qtyText}>−</Text>
-                            </TouchableOpacity>
-
-                            <Text style={styles.qty}>{item?.quantity}</Text>
-
-                            <TouchableOpacity
-                                onPress={() => increaseQty(item.id, item.quantity)}
-                                style={styles.qtyButton}>
-                                <Text style={styles.qtyText}>+</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <Text style={styles.price}>
+                            {item?.product?.product?.formatted_price ??
+                                item?.product?.formatted_price}
+                        </Text>
                     </View>
                 </View>
+
+                <View style={styles.bottomRow}>
+                    {/* Quantity */}
+                    <View style={styles.qtyContainer}>
+                        <TouchableOpacity
+                            onPress={() =>
+                                decreaseQty(
+                                    item.id,
+                                    item.quantity
+                                )
+                            }
+                            style={styles.qtyButton}
+                        >
+                            <Text style={styles.qtyText}>
+                                −
+                            </Text>
+                        </TouchableOpacity>
+
+                        <Text style={styles.qty}>
+                            {item?.quantity}
+                        </Text>
+
+                        <TouchableOpacity
+                            onPress={() =>
+                                increaseQty(
+                                    item.id,
+                                    item.quantity
+                                )
+                            }
+                            style={styles.qtyButton}
+                        >
+                            <Text style={styles.qtyText}>
+                                +
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Remove */}
+                    <TouchableOpacity
+                        style={styles.removeButton}
+                        activeOpacity={0.7}
+                        onPress={() =>
+                            removeFromCart(item.id)
+                        }
+                    >
+                        <Ionicons
+                            name="trash-outline"
+                            size={17}
+                            color="#E53935"
+                        />
+
+                        <Text style={styles.removeText}>
+                            Remove
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </>
+        </View>
     );
     if (!customer?.id) {
         return (
@@ -506,4 +642,38 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginLeft: 8,
     },
+
+
+
+
+    priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+},
+
+regularPrice: {
+    textDecorationLine: 'line-through',
+    color: '#888',
+    fontSize: 11,
+},
+
+removeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#FFF1F1',
+    marginLeft: 10,
+},
+
+removeText: {
+    color: '#E53935',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+},
 });

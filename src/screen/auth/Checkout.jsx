@@ -59,22 +59,61 @@ const Checkout = ({ navigation }) => {
         }
     }
 
+    // const fetchAddress = async () => {
+    //     try {
+    //         const response = await axios.get('/customer/addresses');
+    //         const data = response.data.data || [];
+
+    //         setAddresses(data);
+
+    //         const defaultAddress = data.find(item => item.default_address);
+
+    //         if (defaultAddress) {
+    //             setSelectedAddress(defaultAddress.id);
+    //             onSelectAddress?.(defaultAddress);
+    //         }
+    //     } catch (error) {
+    //         console.log(error.response?.data || error.message);
+    //     } finally {
+    //     }
+    // };
+
     const fetchAddress = async () => {
         try {
             const response = await axios.get('/customer/addresses');
-            const data = response.data.data || [];
+
+            const data = response?.data?.data || [];
 
             setAddresses(data);
 
-            const defaultAddress = data.find(item => item.default_address);
+            // Find default address
+            const defaultAddress = data.find(
+                item => item.default_address
+            );
 
             if (defaultAddress) {
-                setSelectedAddress(defaultAddress.id);
-                onSelectAddress?.(defaultAddress);
+                setSelectedAddress(defaultAddress);
+
+                if (isSameShippingAddress) {
+                    setShippingAddress(defaultAddress);
+                }
+            } else if (data.length > 0) {
+                // Optional: select first address if no default exists
+                setSelectedAddress(data[0]);
+
+                if (isSameShippingAddress) {
+                    setShippingAddress(data[0]);
+                }
+            } else {
+                setSelectedAddress(null);
+                setShippingAddress(null);
             }
+
         } catch (error) {
-            console.log(error.response?.data || error.message);
-        } finally {
+            console.log(
+                'Fetch addresses error:',
+                error.response?.data || error.message
+            );
         }
     };
 
@@ -83,7 +122,7 @@ const Checkout = ({ navigation }) => {
     const renderAddress = ({ item }) => {
         const selected = selectedAddress?.id === item.id;
         return (
-            <Address setBillingAddress={setBillingAddress} item={item} selected={selected} />
+            <Address setBillingAddress={setBillingAddress} item={item} selected={selected} onEdit={handleAddressAdded} />
 
         );
     };
@@ -119,7 +158,7 @@ const Checkout = ({ navigation }) => {
     useEffect(() => {
         const redirectLogin = async () => {
             const token = await AsyncStorage.getItem('token');
-          
+
             if (!token) {
                 navigation.replace('Login');
             }
@@ -131,8 +170,8 @@ const Checkout = ({ navigation }) => {
         <ProductRender item={item} />
     );
 
-    const handleAddressAdded = () => {
-        setRefreshAddress(prev => prev + 1);
+    const handleAddressAdded = async () => {
+        await fetchAddress();
     };
 
 
@@ -417,7 +456,7 @@ const Checkout = ({ navigation }) => {
             setPlacingOrder(false);
             setOrderSuccess(true);
 
-             CartEvents.emit([]);
+            CartEvents.emit([]);
 
         } catch (error) {
             console.error(
@@ -516,7 +555,7 @@ const Checkout = ({ navigation }) => {
                     <Text>{JSON.stringify(selectShippingMethod)}</Text>
                     {shippingMethods.map(item => {
                         const active = selectedShippingMethod === item.code;
-                        
+
 
                         return (
                             <ShippingMethod key={item.code} selectShippingMethod={selectShippingMethod} item={item} active={active} />
@@ -570,7 +609,7 @@ const Checkout = ({ navigation }) => {
     );
 
     const [loading, setLoading] = useState(true);
-   
+
 
     useEffect(() => {
         const loadCheckout = async () => {
@@ -688,8 +727,8 @@ const Checkout = ({ navigation }) => {
                                 style={styles.viewOrderButton}
                                 onPress={() => {
                                     setOrderSuccess(false);
-                                    navigation.replace('OrderShow',{
-                                        order:placedOrder
+                                    navigation.replace('OrderShow', {
+                                        order: placedOrder
                                     });
                                 }}
                             >

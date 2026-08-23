@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -12,7 +12,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import SelectCountry from './SelectCountry';
 import axios from '../services/axios';
 
-const emptyForm = {
+const PRIMARY = '#0C3F80';
+
+const createEmptyForm = () => ({
     companyName: '',
     firstName: '',
     lastName: '',
@@ -28,7 +30,7 @@ const emptyForm = {
     city: '',
     zipCode: '',
     telephone: '',
-};
+});
 
 const Input = ({
     icon,
@@ -39,7 +41,7 @@ const Input = ({
     keyboardType = 'default',
 }) => {
     return (
-        <View style={{ marginBottom: 10 }}>
+        <View style={styles.inputWrapper}>
             <Text style={styles.label}>{label}</Text>
 
             <View style={styles.inputContainer}>
@@ -47,7 +49,7 @@ const Input = ({
                     name={icon}
                     size={20}
                     color="#666"
-                    style={{ marginRight: 10 }}
+                    style={styles.inputIcon}
                 />
 
                 <TextInput
@@ -63,24 +65,27 @@ const Input = ({
     );
 };
 
-export default function Checkout({
+export default function AddressForm({
     onSuccess,
     address,
+    type = 'default',
 }) {
     const [addressModalVisible, setAddressModalVisible] =
         useState(false);
 
     const [editMode, setEditMode] = useState(false);
 
-    const [formData, setFormData] = useState(emptyForm);
+    const [formData, setFormData] = useState(
+        createEmptyForm()
+    );
 
     // =========================================
-    // Convert Address -> Form
+    // Populate form for edit
     // =========================================
 
-    const populateForm = (item) => {
+    const populateForm = item => {
         if (!item) {
-            setFormData(emptyForm);
+            setFormData(createEmptyForm());
             return;
         }
 
@@ -109,23 +114,36 @@ export default function Checkout({
     };
 
     // =========================================
-    // Open Add
+    // Open Add Modal
     // =========================================
 
     const openAddModal = () => {
         setEditMode(false);
-        setFormData(emptyForm);
+        setFormData(createEmptyForm());
         setAddressModalVisible(true);
     };
 
     // =========================================
-    // Open Edit
+    // Open Edit Modal
     // =========================================
 
     const openEditModal = () => {
+        if (!address?.id) {
+            return;
+        }
+
         setEditMode(true);
         populateForm(address);
         setAddressModalVisible(true);
+    };
+
+    // =========================================
+    // Close Modal
+    // =========================================
+
+    const closeModal = () => {
+        setAddressModalVisible(false);
+        setEditMode(false);
     };
 
     // =========================================
@@ -150,32 +168,32 @@ export default function Checkout({
                 first_name: formData.firstName,
                 last_name: formData.lastName,
                 email: formData.email,
+
                 address: [formData.streetAddress],
-                country: formData.country?.code,
+
+                country: formData.country?.code ?? 'NP',
+
                 state: formData.state,
                 city: formData.city,
                 postcode: formData.zipCode,
+
                 phone: formData.telephone,
+
                 default_address: 0,
+
                 vat_id: formData.vatId,
             };
 
             let response;
 
             if (editMode && address?.id) {
-                // =====================================
                 // UPDATE
-                // =====================================
-
                 response = await axios.put(
                     `/customer/addresses/${address.id}`,
                     payload
                 );
             } else {
-                // =====================================
                 // CREATE
-                // =====================================
-
                 response = await axios.post(
                     '/customer/addresses',
                     payload
@@ -184,49 +202,94 @@ export default function Checkout({
 
             console.log(
                 editMode
-                    ? 'Address updated:'
-                    : 'Address created:',
-                response.data
+                    ? 'Address updated'
+                    : 'Address created',
+                response?.data
             );
 
-            setAddressModalVisible(false);
+            closeModal();
 
-            onSuccess?.(response.data);
+            // Refresh parent
+            onSuccess?.(response?.data);
         } catch (error) {
             console.log(
-                'Status:',
-                error.response?.status
+                'Address error:',
+                error?.response?.data || error
             );
 
-            console.log(
-                'Response:',
-                JSON.stringify(
-                    error.response?.data,
-                    null,
-                    2
-                )
-            );
-
-            if (error.response?.data?.errors) {
+            if (error?.response?.data?.errors) {
                 Object.entries(
                     error.response.data.errors
                 ).forEach(([field, messages]) => {
                     console.log(
-                        `${field}: ${messages.join(', ')}`
+                        `${field}: ${
+                            Array.isArray(messages)
+                                ? messages.join(', ')
+                                : messages
+                        }`
                     );
                 });
             }
         }
     };
 
-    return (
-        <View style={{ marginTop: 10 }}>
+    // =========================================
+    // Render Button
+    // =========================================
 
-            {/* =====================================
-                ADD / EDIT BUTTON
-            ===================================== */}
+    const renderActionButton = () => {
+        // =====================================
+        // PROFILE
+        // =====================================
 
-            {address?.id ? (
+        if (type === 'profile') {
+            if (address?.id) {
+                return (
+                    <TouchableOpacity
+                        style={styles.profileEditButton}
+                        activeOpacity={0.7}
+                        onPress={openEditModal}
+                    >
+                        <Ionicons
+                            name="create-outline"
+                            size={18}
+                            color={PRIMARY}
+                        />
+
+                        <Text
+                            style={styles.profileEditText}
+                        >
+                            Edit
+                        </Text>
+                    </TouchableOpacity>
+                );
+            }
+
+            return (
+                <TouchableOpacity
+                    style={styles.addButton}
+                    activeOpacity={0.85}
+                    onPress={openAddModal}
+                >
+                    <Ionicons
+                        name="add"
+                        size={22}
+                        color="#fff"
+                    />
+
+                    <Text style={styles.addText}>
+                        Add New Address
+                    </Text>
+                </TouchableOpacity>
+            );
+        }
+
+        // =====================================
+        // CHECKOUT / DEFAULT
+        // =====================================
+
+        if (address?.id) {
+            return (
                 <TouchableOpacity
                     style={styles.editButton}
                     activeOpacity={0.7}
@@ -235,25 +298,38 @@ export default function Checkout({
                     <Ionicons
                         name="create-outline"
                         size={16}
-                        color="#0C3F80"
+                        color={PRIMARY}
                     />
 
                     <Text style={styles.editText}>
                         Edit
                     </Text>
                 </TouchableOpacity>
-            ) : (
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={openAddModal}
-                >
-                    <Ionicons
-                        name="add"
-                        size={30}
-                        color="#444"
-                    />
-                </TouchableOpacity>
-            )}
+            );
+        }
+
+        return (
+            <TouchableOpacity
+                style={styles.button}
+                onPress={openAddModal}
+                activeOpacity={0.8}
+            >
+                <Ionicons
+                    name="add"
+                    size={30}
+                    color="#444"
+                />
+            </TouchableOpacity>
+        );
+    };
+
+    return (
+        <View style={styles.container}>
+            {/* =====================================
+                ADD / EDIT ACTION
+            ===================================== */}
+
+            {renderActionButton()}
 
             {/* =====================================
                 MODAL
@@ -263,14 +339,12 @@ export default function Checkout({
                 visible={addressModalVisible}
                 animationType="fade"
                 transparent
-                onRequestClose={() =>
-                    setAddressModalVisible(false)
-                }
+                onRequestClose={closeModal}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
 
-                        {/* Header */}
+                        {/* Modal Header */}
 
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>
@@ -281,11 +355,7 @@ export default function Checkout({
 
                             <TouchableOpacity
                                 style={styles.closeButton}
-                                onPress={() =>
-                                    setAddressModalVisible(
-                                        false
-                                    )
-                                }
+                                onPress={closeModal}
                             >
                                 <Ionicons
                                     name="close"
@@ -300,11 +370,10 @@ export default function Checkout({
                             extraScrollHeight={120}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{
-                                paddingBottom: 40,
-                            }}
+                            contentContainerStyle={
+                                styles.scrollContent
+                            }
                         >
-
                             {/* Company */}
 
                             <Input
@@ -322,7 +391,7 @@ export default function Checkout({
                                 placeholder="Company Name"
                             />
 
-                            {/* First + Last */}
+                            {/* First / Last Name */}
 
                             <View style={styles.row}>
                                 <View
@@ -431,56 +500,69 @@ export default function Checkout({
                                 }
                             />
 
+                            {/* State */}
+
+                            {/* <Input
+                                icon="map-outline"
+                                label="State"
+                                value={formData.state}
+                                onChangeText={text =>
+                                    handleInputChange(
+                                        'state',
+                                        text
+                                    )
+                                }
+                                placeholder="State"
+                            /> */}
+
                             {/* City */}
 
-                            <View style={styles.row}>
-                                <View
-                                    style={
-                                        styles.flexField
-                                    }
-                                >
-                                    <Input
-                                        icon="business-outline"
-                                        label="City"
-                                        value={
-                                            formData.city
-                                        }
-                                        onChangeText={text =>
-                                            handleInputChange(
-                                                'city',
-                                                text
-                                            )
-                                        }
-                                        placeholder="City"
-                                    />
-                                </View>
-                            </View>
+                            <Input
+                                icon="business-outline"
+                                label="City"
+                                value={formData.city}
+                                onChangeText={text =>
+                                    handleInputChange(
+                                        'city',
+                                        text
+                                    )
+                                }
+                                placeholder="City"
+                            />
+
+                            {/* Zip Code */}
+
+                            {/* <Input
+                                icon="pin-outline"
+                                label="Zip Code"
+                                value={formData.zipCode}
+                                onChangeText={text =>
+                                    handleInputChange(
+                                        'zipCode',
+                                        text
+                                    )
+                                }
+                                placeholder="Zip Code"
+                                keyboardType="numeric"
+                            /> */}
 
                             {/* Telephone */}
 
-                            <View style={styles.row}>
-                                <View
-                                    style={
-                                        styles.flexField
-                                    }
-                                >
-                                    <Input
-                                        icon="call-outline"
-                                        label="Telephone"
-                                        value={
-                                            formData.telephone
-                                        }
-                                        onChangeText={text =>
-                                            handleInputChange(
-                                                'telephone',
-                                                text
-                                            )
-                                        }
-                                        placeholder="Telephone"
-                                        keyboardType="phone-pad"
-                                    />
-                                </View>
-                            </View>
+                            <Input
+                                icon="call-outline"
+                                label="Telephone"
+                                value={
+                                    formData.telephone
+                                }
+                                onChangeText={text =>
+                                    handleInputChange(
+                                        'telephone',
+                                        text
+                                    )
+                                }
+                                placeholder="Telephone"
+                                keyboardType="phone-pad"
+                            />
 
                             {/* Submit */}
 
@@ -489,7 +571,18 @@ export default function Checkout({
                                     styles.submitButton
                                 }
                                 onPress={handleSubmit}
+                                activeOpacity={0.8}
                             >
+                                <Ionicons
+                                    name={
+                                        editMode
+                                            ? 'checkmark-circle-outline'
+                                            : 'save-outline'
+                                    }
+                                    size={20}
+                                    color="#fff"
+                                />
+
                                 <Text
                                     style={
                                         styles.submitButtonText
@@ -500,7 +593,6 @@ export default function Checkout({
                                         : 'Save Billing Address'}
                                 </Text>
                             </TouchableOpacity>
-
                         </KeyboardAwareScrollView>
                     </View>
                 </View>
@@ -510,6 +602,14 @@ export default function Checkout({
 }
 
 const styles = StyleSheet.create({
+    container: {
+        marginTop: 10,
+    },
+
+    // =========================================
+    // Default Add Button
+    // =========================================
+
     button: {
         borderWidth: 1,
         borderColor: '#ccc',
@@ -517,8 +617,90 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 25,
         alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: '#F5F5F5',
     },
+
+    // =========================================
+    // Profile Add Button
+    // =========================================
+
+    addButton: {
+        position: 'absolute',
+        left: 15,
+        right: 15,
+        bottom: 15,
+        height: 52,
+        borderRadius: 14,
+        backgroundColor: PRIMARY,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row',
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+    },
+
+    addText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '700',
+        marginLeft: 7,
+    },
+
+    // =========================================
+    // Profile Edit
+    // =========================================
+
+    profileEditButton: {
+        width: '100%',
+        height: 40,
+        borderRadius: 9,
+        borderWidth: 1,
+        borderColor: PRIMARY,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F8FAFD',
+        marginTop:-10
+    },
+
+    profileEditText: {
+        marginLeft: 5,
+        color: PRIMARY,
+        fontSize: 13,
+        fontWeight: '700',
+    },
+
+    // =========================================
+    // Default Edit
+    // =========================================
+
+    editButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        borderRadius: 7,
+        backgroundColor: '#F1F5FA',
+    },
+
+    editText: {
+        marginLeft: 4,
+        fontSize: 12,
+        fontWeight: '700',
+        color: PRIMARY,
+    },
+
+    // =========================================
+    // Modal
+    // =========================================
 
     modalOverlay: {
         flex: 1,
@@ -532,7 +714,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 25,
         paddingHorizontal: 20,
         paddingTop: 15,
-        maxHeight: '90%',
+        maxHeight: '92%',
     },
 
     modalHeader: {
@@ -552,12 +734,16 @@ const styles = StyleSheet.create({
         padding: 3,
     },
 
-    row: {
-        flexDirection: 'row',
+    scrollContent: {
+        paddingBottom: 40,
     },
 
-    flexField: {
-        flex: 1,
+    // =========================================
+    // Form
+    // =========================================
+
+    inputWrapper: {
+        marginBottom: 10,
     },
 
     label: {
@@ -577,18 +763,37 @@ const styles = StyleSheet.create({
         height: 50,
     },
 
+    inputIcon: {
+        marginRight: 10,
+    },
+
     input: {
         flex: 1,
         fontSize: 15,
         color: '#222',
     },
 
+    row: {
+        flexDirection: 'row',
+    },
+
+    flexField: {
+        flex: 1,
+    },
+
+    // =========================================
+    // Submit
+    // =========================================
+
     submitButton: {
-        backgroundColor: '#1976D2',
+        backgroundColor: PRIMARY,
         padding: 15,
         borderRadius: 10,
         marginTop: 15,
         marginBottom: 20,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
     submitButtonText: {
@@ -596,22 +801,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '700',
         fontSize: 16,
-    },
-
-    editButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 8,
-        paddingVertical: 5,
-        borderRadius: 7,
-        backgroundColor: '#F1F5FA',
-    },
-
-    editText: {
-        marginLeft: 4,
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#0C3F80',
+        marginLeft: 8,
     },
 });

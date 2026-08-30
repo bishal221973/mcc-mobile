@@ -15,9 +15,10 @@ const ProductRender = ({ item }) => {
 
         <View style={styles.bottomRow}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Text style={styles.price}>{item?.product?.product?.formatted_price ?? item?.product?.formatted_price} </Text>
+            <Text style={styles.price}>{item?.formatted_price} </Text>
             <Text style={[styles.price, { color: '#000', fontSize: 13 }]}>X</Text>
             <Text style={[styles.price, { color: '#000', fontSize: 13 }]}>{item.quantity}</Text>
+            {/* <Text style={[styles.price, { color: '#000', fontSize: 13 }]}>{JSON.stringify(item?.formatted_price)}</Text> */}
           </View>
 
 

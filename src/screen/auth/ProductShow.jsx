@@ -40,6 +40,7 @@ const ProductShow = ({ route, navigation }) => {
 
             const response = await axios.get(`/products/${id}`);
 
+            console.log(response?.data)
             setProduct(response.data.data);
         } catch (error) {
             console.log(
@@ -157,6 +158,7 @@ const ProductShow = ({ route, navigation }) => {
 
 
 
+
     return (
 
         <SafeAreaView style={styles.mainWrapper}>
@@ -224,7 +226,7 @@ const ProductShow = ({ route, navigation }) => {
 
 
                     </View>
-                    <View style={{flexDirection:'row',alignItems:'center',gap:5}}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                         <Text
                             style={{
                                 textDecorationLine: 'line-through',
@@ -234,13 +236,36 @@ const ProductShow = ({ route, navigation }) => {
                         >
                             {product?.formatted_regular_price}
                         </Text>
-                        
+
                         <Text style={[styles.productPrice]}>
                             {product.formatted_price}
                         </Text>
                     </View>
 
 
+                    {/* <Text>{JSON.stringify(product?.customer_group_prices)}</Text> */}
+                    {product?.customer_group_prices?.map((item, index) => {
+                        const regularPrice = Number(product?.regular_price || 0);
+                        const groupPrice = Number(item.value || 0);
+
+                        const discount =
+                            regularPrice > 0
+                                ? ((regularPrice - groupPrice) / regularPrice) * 100
+                                : 0;
+
+                        return (
+                            <View key={item.id ?? index}>
+                                <Text>
+                                    Buy {item.qty} for Rs.{" "}
+                                    {groupPrice.toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}{" "}
+                                    each and save {discount.toFixed(2)}%
+                                </Text>
+                            </View>
+                        );
+                    })}
 
                     <Text style={styles.sectionTitle}>
                         Description
@@ -334,7 +359,7 @@ const ProductShow = ({ route, navigation }) => {
             <View style={styles.footer}>
 
 
-                <View>
+                {/* <View>
 
                     <Text style={styles.totalLabel}>
                         Total Price
@@ -346,7 +371,8 @@ const ProductShow = ({ route, navigation }) => {
                     </Text>
 
 
-                </View>
+                </View> */}
+                <View></View>
 
 
 
@@ -365,11 +391,14 @@ const ProductShow = ({ route, navigation }) => {
                                 color="#007AFF"
                             />
                         ) : (
-                            <Ionicons
-                                name="bag-handle-outline"
-                                size={22}
-                                color="#007AFF"
-                            />
+                            <>
+                                <Ionicons
+                                    name="bag-handle-outline"
+                                    size={22}
+                                    color="#007AFF"
+                                />
+                                <Text style={{fontWeight:'bold',color:'#007AFF'}}>Add To Carts</Text>
+                            </>
                         )}
 
                     </TouchableOpacity>
@@ -547,14 +576,17 @@ const styles = StyleSheet.create({
 
 
     cartButton: {
-        width: 50,
+        width: 145,
         height: 50,
         borderWidth: 1,
         borderColor: '#007AFF',
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10
+        marginRight: 10,
+        flexDirection:'row',
+        alignItems:'center',
+        gap:5
     },
 
 

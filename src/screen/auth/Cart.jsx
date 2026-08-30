@@ -261,9 +261,33 @@ const Cart = ({ navigation }) => {
                                 item?.product?.formatted_price}
                         </Text>
                     </View>
+
+                    {/* <Text>{JSON.stringify(item?.product?.customer_group_prices)}</Text> */}
+                    {item?.product?.customer_group_prices?.map((item, index) => {
+                        const regularPrice = Number(item.product?.regular_price || 0);
+                        const groupPrice = Number(item.value || 0);
+
+                        const discount =
+                            regularPrice > 0
+                                ? ((regularPrice - groupPrice) / regularPrice) * 100
+                                : 0;
+
+                        return (
+                            <View key={item.id ?? index}>
+                                <Text style={{fontSize:10}}>
+                                    Buy {item.qty} for Rs.{" "}
+                                    {groupPrice.toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}{" "}
+                                    each.
+                                </Text>
+                            </View>
+                        );
+                    })}
                 </View>
 
-                <View style={styles.bottomRow}>
+                <View style={[styles.bottomRow,{marginTop:5}]}>
                     {/* Quantity */}
                     <View style={styles.qtyContainer}>
                         <TouchableOpacity
@@ -647,33 +671,33 @@ const styles = StyleSheet.create({
 
 
     priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 6,
-},
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 6,
+    },
 
-regularPrice: {
-    textDecorationLine: 'line-through',
-    color: '#888',
-    fontSize: 11,
-},
+    regularPrice: {
+        textDecorationLine: 'line-through',
+        color: '#888',
+        fontSize: 11,
+    },
 
-removeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#FFF1F1',
-    marginLeft: 10,
-},
+    removeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        borderRadius: 8,
+        backgroundColor: '#FFF1F1',
+        marginLeft: 10,
+    },
 
-removeText: {
-    color: '#E53935',
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
-},
+    removeText: {
+        color: '#E53935',
+        fontSize: 12,
+        fontWeight: '600',
+        marginLeft: 4,
+    },
 });

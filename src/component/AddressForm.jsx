@@ -45,7 +45,7 @@ const Input = ({
         <View style={styles.inputWrapper}>
             {/* <Text style={styles.label}>{label} {isRequired && <Text style={{color:'red',opacity:0.6}}>*</Text>}</Text> */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.label}>First Name</Text>
+                <Text style={styles.label}>{label}</Text>
                 <Text style={{ color: 'red', opacity: 0.6, marginLeft: 3 }}>
                     *
                 </Text>

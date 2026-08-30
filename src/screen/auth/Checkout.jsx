@@ -42,6 +42,7 @@ const Checkout = ({ navigation }) => {
     const [addresses, setAddresses] = useState([]);
     const [shippingPrice, setShippingPrice] = useState({ amount: 0 })
     const [refreshing, setRefreshing] = useState(false);
+    const [customer, setCustomer] = useState([]);
 
     const toggleShippingAddress = (checked) => {
         setIsSameShippingAddress(checked);
@@ -155,14 +156,26 @@ const Checkout = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        const redirectLogin = async () => {
-            const token = await AsyncStorage.getItem('token');
+    const redirectLogin = async () => {
+        // const token = await AsyncStorage.getItem('token');
 
-            if (!token) {
+        // if (!token) {
+        //     navigation.replace('Login');
+        // }
+        try {
+            const response = await axios.get('/customer/get');
+            setCustomer(response?.data?.data);
+            if (!response?.data?.data) {
                 navigation.replace('Login');
             }
-        };
+
+
+            console.log(response.data)
+        } catch (error) {
+            console.log(error)
+        }
+    };
+    useEffect(() => {
         redirectLogin();
     }, [navigation]);
 
@@ -336,9 +349,32 @@ const Checkout = ({ navigation }) => {
     };
 
 
-    const renderPaymentItem = ({ item }) => (
+    // const renderPaymentItem = ({ item }) => (
+    //     {
 
-        <Payment selectPaymentMethod={selectPaymentMethod} key={item.id} item={item} selectedPayment={selectedPayment} />
+    //         <Text>{JSON.stringify(customer?.group?.allow_credit_payment)}</Text>
+    //         <Text>{JSON.stringify(customer?.group?.allow_credit_payment)}</Text>
+    //     }
+
+    //     // <Payment selectPaymentMethod={selectPaymentMethod} key={item.id} item={item} selectedPayment={selectedPayment} />
+    // );
+
+    const renderPaymentItem = ({ item }) => (
+        <>
+            {/* <Text> */}
+            {/* {JSON.stringify(customer?.group?.allow_credit_payment)} */}
+            {/* {JSON.stringify(item)} */}
+            {/* </Text> */}
+
+            {(item.code !== 'creditpayment' || customer?.group?.allow_credit_payment == 1) && (
+                <Payment
+                    selectPaymentMethod={selectPaymentMethod}
+                    key={item.id}
+                    item={item}
+                    selectedPayment={selectedPayment}
+                />
+            )}
+        </>
     );
 
     const [placingOrder, setPlacingOrder] = useState(false);
@@ -483,6 +519,7 @@ const Checkout = ({ navigation }) => {
                 loadCart(),
                 fetchAddress(),
                 fetchConfig(),
+                redirectLogin(),
             ]);
         } catch (error) {
             console.log('Refresh error:', error);
@@ -553,6 +590,7 @@ const Checkout = ({ navigation }) => {
 
                 <View style={styles.rowShipping}>
                     <Text>{JSON.stringify(selectShippingMethod)}</Text>
+
                     {shippingMethods.map(item => {
                         const active = selectedShippingMethod === item.code;
 

@@ -184,6 +184,25 @@ const ProductShow = ({ route, navigation }) => {
                     product={product}
                 />
 
+                {!product?.in_stock && (
+                    <View
+                        style={{
+                            backgroundColor: 'red',
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                            zIndex: 10,
+                        }}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: '600', fontSize: 10 }}>
+                            Out of Stock
+                        </Text>
+                    </View>
+                )}
+
                 {/* <TouchableOpacity
                     style={styles.favoriteBtn}
                     onPress={() =>
@@ -302,6 +321,7 @@ const ProductShow = ({ route, navigation }) => {
                                     )
                                 )
                             }
+                            disabled={!product?.in_stock}
                         >
 
                             <Ionicons
@@ -325,6 +345,7 @@ const ProductShow = ({ route, navigation }) => {
                             onPress={() =>
                                 setQuantity(quantity + 1)
                             }
+                            disabled={!product?.in_stock}
                         >
 
                             <Ionicons
@@ -381,9 +402,12 @@ const ProductShow = ({ route, navigation }) => {
 
 
                     <TouchableOpacity
-                        style={styles.cartButton}
+                        style={[
+                            styles.cartButton,
+                            (!product?.in_stock || loading) && styles.cartButtonDisabled
+                        ]}
                         onPress={handleAddToCart}
-                        disabled={loading}
+                        disabled={!product?.in_stock || loading}
                     >
                         {loading ? (
                             <ActivityIndicator
@@ -397,25 +421,25 @@ const ProductShow = ({ route, navigation }) => {
                                     size={22}
                                     color="#007AFF"
                                 />
-                                <Text style={{fontWeight:'bold',color:'#007AFF'}}>Add To Carts</Text>
+                                <Text style={styles.cartButtonText}>
+                                    Add To Cart
+                                </Text>
                             </>
                         )}
-
                     </TouchableOpacity>
 
 
-
-
                     <TouchableOpacity
-                        style={styles.buyNowButton}
+                        style={[
+                            styles.buyNowButton,
+                            (!product?.in_stock || loading) && styles.buyNowButtonDisabled
+                        ]}
                         onPress={handleBuyNow}
-                        disabled={loading}
+                        disabled={!product?.in_stock || loading}
                     >
-
                         <Text style={styles.buyNowButtonText}>
                             Buy Now
                         </Text>
-
                     </TouchableOpacity>
 
 
@@ -584,9 +608,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
-        flexDirection:'row',
-        alignItems:'center',
-        gap:5
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5
+    },
+
+    cartButtonDisabled: {
+        opacity: 0.5,
+    },
+
+    cartButtonText: {
+        fontWeight: 'bold',
+        color: '#007AFF',
     },
 
 
@@ -603,7 +636,17 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '700'
-    }
+    },
 
+    buyNowButton: {
+        backgroundColor: '#007AFF',
+        height: 50,
+        paddingHorizontal: 30,
+        borderRadius: 10,
+        justifyContent: 'center',
+    },
 
+    buyNowButtonDisabled: {
+        opacity: 0.5,
+    },
 });

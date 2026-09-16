@@ -47,6 +47,10 @@ const Products = ({ title, filters }) => {
 
             // Alert.alert("success", "Saed");
 
+            console.log("///////////////////////")
+            // console.log(res.data?.data)
+            console.log("///////////////////////")
+
             setProducts(res.data.data);
             setProducts1(res.data.data);
 
@@ -144,7 +148,25 @@ const Products = ({ title, filters }) => {
                     }}
                     style={styles.image}
                 />
-
+                {/* item.in_stock */}
+                {!item?.in_stock && (
+                    <View
+                        style={{
+                            backgroundColor: 'red',
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                            zIndex: 10,
+                        }}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: '600', fontSize: 10 }}>
+                            Out of Stock
+                        </Text>
+                    </View>
+                )}
                 <View style={{ paddingHorizontal: 10 }}>
                     <Text
                         style={styles.name}
@@ -163,6 +185,7 @@ const Products = ({ title, filters }) => {
                 </View>
 
                 {/* Add to Cart */}
+                {/* <Text>{JSON.stringify(item.in_stock)}</Text>
                 <TouchableOpacity
                     style={[
                         styles.cartButton,
@@ -196,7 +219,35 @@ const Products = ({ title, filters }) => {
                             </Text>
                         </>
                     )}
+                </TouchableOpacity> */}
+                <TouchableOpacity
+                    style={[
+                        styles.cartButton,
+                        (!item.in_stock || isAdding) && styles.cartButtonDisabled,
+                    ]}
+                    onPress={() => handleAddToCart(item)}
+                    disabled={!item.in_stock || isAdding}
+                    activeOpacity={0.8}
+                >
+                    {isAdding ? (
+                        <>
+                            <ActivityIndicator size="small" color="#fff" />
+                            <Text style={styles.cartText}>Adding...</Text>
+                        </>
+                    ) : (
+                        <>
+                            <Ionicons
+                                name="cart-outline"
+                                size={18}
+                                color="#fff"
+                            />
+                            <Text style={styles.cartText}>
+                                {item.in_stock ? "Add" : "Out of Stock"}
+                            </Text>
+                        </>
+                    )}
                 </TouchableOpacity>
+
             </TouchableOpacity>
         );
     };
@@ -300,6 +351,10 @@ const Products = ({ title, filters }) => {
 export default Products;
 
 const styles = StyleSheet.create({
+    cartButtonDisabled: {
+        opacity: 0.7,
+    },
+
     container: {
         marginTop: 20,
     },

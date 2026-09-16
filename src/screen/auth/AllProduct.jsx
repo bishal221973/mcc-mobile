@@ -374,6 +374,24 @@ const AllProduct = ({ route, navigation }) => {
                     }}
                     style={styles.image}
                 />
+                {!item?.in_stock && (
+                    <View
+                        style={{
+                            backgroundColor: 'red',
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                            zIndex: 10,
+                        }}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: '600', fontSize: 10 }}>
+                            Out of Stock
+                        </Text>
+                    </View>
+                )}
 
                 {/* Product Information */}
                 <View
@@ -423,6 +441,7 @@ const AllProduct = ({ route, navigation }) => {
                         styles.cartButton,
                         isAdding &&
                         styles.cartButtonLoading,
+                        (!item.in_stock) && styles.cartButtonDisabled,
                     ]}
                     onPress={event => {
                         // Prevent parent card
@@ -433,7 +452,7 @@ const AllProduct = ({ route, navigation }) => {
                             item
                         );
                     }}
-                    disabled={isAdding}
+                    disabled={!item.in_stock || isAdding}
                     activeOpacity={0.8}
                 >
                     {isAdding ? (
@@ -680,6 +699,9 @@ const AllProduct = ({ route, navigation }) => {
 export default AllProduct;
 
 const styles = StyleSheet.create({
+    cartButtonDisabled: {
+        opacity: 0.7,
+    },
     container: {
         flex: 1,
         backgroundColor: '#F8FAFC',

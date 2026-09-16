@@ -48,9 +48,9 @@ class CartService {
             const token = await AsyncStorage.getItem('token');
             // console.log(token)
             const res = await api.get('/customer/cart');
-            console.log("...........................")
-            console.log(res)
-            console.log("...........................")
+            // console.log("...........................")
+            // console.log(res)
+            // console.log("...........................")
 
             return res.data.data;
         } catch (error) {
@@ -72,7 +72,7 @@ class CartService {
                 }
             );
 
-            CartEvents.emit(cart);
+            // CartEvents.emit(cart);
             return response.data;
         } catch (error) {
             console.log("Status:", error.response?.status);

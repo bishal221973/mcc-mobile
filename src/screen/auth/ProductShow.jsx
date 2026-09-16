@@ -8,7 +8,8 @@ import {
     ScrollView,
     Alert,
     RefreshControl,
-    ActivityIndicator
+    ActivityIndicator,
+    TextInput
 } from 'react-native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -85,6 +86,8 @@ const ProductShow = ({ route, navigation }) => {
             );
             navigation.replace('Login');
         }
+
+         setQuantity(1);
         CartEvents.emit([]);
 
 
@@ -334,9 +337,26 @@ const ProductShow = ({ route, navigation }) => {
 
 
 
-                        <Text style={styles.qtyText}>
+                        {/* <Text style={styles.qtyText}>
                             {quantity}
-                        </Text>
+                        </Text> */}
+                        <TextInput
+                            style={styles.qtyInput}
+                            value={String(quantity)}
+                            onChangeText={(text) => {
+                                const value = text.replace(/[^0-9]/g, '');
+
+                                if (value === '') {
+                                    setQuantity(1);
+                                    return;
+                                }
+
+                                setQuantity(Math.max(1, parseInt(value, 10)));
+                            }}
+                            keyboardType="number-pad"
+                            inputMode="numeric"
+                            selectTextOnFocus
+                        />
 
 
 

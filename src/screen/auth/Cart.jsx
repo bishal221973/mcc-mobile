@@ -19,6 +19,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import CartSkeleton from '../../component/Loading/CartSkeleton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PleaseLogin from '../../component/PleaseLogin'
+import CartEvents from '../../services/CartEvents';
+
 const Cart = ({ navigation }) => {
 
     const [carts, setCarts] = useState([]);
@@ -140,6 +142,7 @@ const Cart = ({ navigation }) => {
                             });
 
                             await loadCart(false);
+                            CartEvents.emit([]);
                         } catch (error) {
                             console.error(
                                 'Remove cart item error:',

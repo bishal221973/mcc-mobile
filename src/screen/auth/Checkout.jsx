@@ -5,12 +5,12 @@ import {
     View,
     TouchableOpacity,
     FlatList,
-    SafeAreaView,
     Alert,
     RefreshControl,
     ActivityIndicator,
     Modal
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../component/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CartService from "../../services/cart"

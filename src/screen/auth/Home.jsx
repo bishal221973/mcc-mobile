@@ -17,6 +17,7 @@ import Search from "../../component/Search"
 import axios from "../../services/axios"
 import { useRoute } from '@react-navigation/native';
 import HomeSkeletonLoader from "../../component/HomeSkeletonLoader"
+import DeviceTokenService from "../../services/DeviceTokenService";
 const PRIMARY = '#2563EB';
 
 const Home = ({ navigation }) => {
@@ -134,11 +135,24 @@ const Home = ({ navigation }) => {
     }
   };
 
+  useEffect(() => {
+
+    const saveDeviceToken = async () => {
+      await DeviceTokenService.updateDeviceToken();
+    };
+
+    saveDeviceToken();
+
+  }, []);
+
+
+  
+
   if (loading) {
     return (
-        <HomeSkeletonLoader/>
+      <HomeSkeletonLoader />
     );
-}
+  }
 
   return (
     <View style={styles.container}>

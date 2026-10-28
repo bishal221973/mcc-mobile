@@ -46,9 +46,11 @@ const Input = ({
             {/* <Text style={styles.label}>{label} {isRequired && <Text style={{color:'red',opacity:0.6}}>*</Text>}</Text> */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={styles.label}>{label}</Text>
+                {isRequired && 
                 <Text style={{ color: 'red', opacity: 0.6, marginLeft: 3 }}>
                     *
                 </Text>
+                }
             </View>
             <View style={styles.inputContainer}>
                 <Ionicons

@@ -89,7 +89,7 @@ const getRelativeTime = dateString => {
     });
 };
 
-const Notification = ({navigation}) => {
+const Notification = ({ navigation }) => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -182,51 +182,51 @@ const Notification = ({navigation}) => {
     };
 
     const markAsRead = async (notificationId) => {
-    const notification = notifications.find(
-        item => item.id === notificationId,
-    );
+        const notification = notifications.find(
+            item => item.id === notificationId,
+        );
 
-    if (!notification || notification.read) {
-        return;
-    }
-
-    try {
-        const token = await AsyncStorage.getItem('token');
-
-        if (!token) {
-            console.log('Authentication token not found');
+        if (!notification || notification.read) {
             return;
         }
 
-        await axios.put(
-            `${BASE_URL}/api/v1/customer/notifications/${notificationId}`,
-            {},
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
+        try {
+            const token = await AsyncStorage.getItem('token');
+
+            if (!token) {
+                console.log('Authentication token not found');
+                return;
+            }
+
+            await axios.put(
+                `${BASE_URL}/api/v1/customer/notifications/${notificationId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                    },
                 },
-            },
-        );
+            );
 
-        setNotifications(current =>
-            current.map(item =>
-                item.id === notificationId
-                    ? { ...item, read: true }
-                    : item,
-            ),
-        );
+            setNotifications(current =>
+                current.map(item =>
+                    item.id === notificationId
+                        ? { ...item, read: true }
+                        : item,
+                ),
+            );
 
-        
-    } catch (error) {
-        console.error(
-            'Failed to mark notification as read:',
-            error.response?.status,
-            error.response?.data || error.message,
-        );
-    }
-};
+
+        } catch (error) {
+            console.error(
+                'Failed to mark notification as read:',
+                error.response?.status,
+                error.response?.data || error.message,
+            );
+        }
+    };
 
     const renderItem = ({ item }) => {
         const appearance =
@@ -241,11 +241,19 @@ const Notification = ({navigation}) => {
                 ]}
                 onPress={() => {
                     markAsRead(item.id);
-                    // Navigate to order details here if needed.
-                    // Example:
-                    navigation.navigate('OrderShow', {
-                        order: item.order,
-                    });
+
+                    // navigation.navigate('OrderShow', {
+                    //     order: item.order,
+                    // });
+                    if (item.order) {
+                        navigation.navigate('OrderShow', {
+                            order: item.order,
+                        });
+                    } else if(item.product_id) {
+                        navigation.navigate('ProductShow', {
+                            id: item.product_id,
+                        });
+                    }
                 }}
             >
                 <View
